@@ -1,6 +1,20 @@
-import { createOrganisation } from './actions'
+import { redirect } from 'next/navigation'
+import { supabaseServerRead } from '@/lib/supabase/server-read'
+import CreateOrganisationForm from './create-organisation-form'
 
-export default function CreateOrganisationPage() {
+export default async function CreateOrganisationPage() {
+  const supabase = await supabaseServerRead()
+
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser()
+
+  // 🔐 Must be authenticated to onboard
+  if (error || !user) {
+    redirect('/auth/login')
+  }
+
   return (
     <main className="p-10 max-w-xl space-y-6">
       <h1 className="text-3xl font-bold">
@@ -11,23 +25,7 @@ export default function CreateOrganisationPage() {
         Every Veriscopic workspace belongs to an organisation.
       </p>
 
-      <form action={createOrganisation} className="space-y-4">
-        <input
-          name="name"
-          type="text"
-          required
-          placeholder="Organisation name"
-          className="w-full rounded-md border p-3"
-        />
-
-        <button
-          type="submit"
-          className="rounded-md bg-primary px-4 py-2 text-white"
-        >
-          Create organisation
-        </button>
-      </form>
+      <CreateOrganisationForm />
     </main>
   )
 }
-

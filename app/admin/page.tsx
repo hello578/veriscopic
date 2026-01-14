@@ -1,4 +1,4 @@
-import { requireRole } from '@/lib/rbac-guards'
+import { requireRole } from '@/lib/types/rbac-guards'
 
 export default async function AdminPage() {
   const { org, role } = await requireRole(['owner', 'admin'])
