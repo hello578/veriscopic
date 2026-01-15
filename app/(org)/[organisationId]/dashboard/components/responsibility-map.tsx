@@ -1,3 +1,6 @@
+// app/(org)/[organisationId]/dashboard/components/responsibility-map.tsx
+
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 export function ResponsibilityMap() {

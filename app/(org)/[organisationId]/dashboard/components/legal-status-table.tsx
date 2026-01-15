@@ -1,3 +1,4 @@
+// app/(org)/[organisationId]/dashboard/components/legal-status-table.tsx
 import {
   Table,
   TableBody,

@@ -1,3 +1,5 @@
+// app/(org)/[organisationId]/dashboard/components/compliance-completeness-card.tsx
+
 import { Card, CardHeader, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import {
