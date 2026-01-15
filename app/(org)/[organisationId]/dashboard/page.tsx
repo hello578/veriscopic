@@ -1,3 +1,4 @@
+import { redirect } from 'next/navigation'
 import { requireRole } from '@/lib/rbac/guards'
 
 export default async function OrganisationDashboardPage({
@@ -5,21 +6,33 @@ export default async function OrganisationDashboardPage({
 }: {
   params: Promise<{ organisationId: string }>
 }) {
+  // ✅ REQUIRED in Next.js 16
   const { organisationId } = await params
 
-  // 🔐 RBAC enforcement ONLY
-  const ctx = await requireRole(organisationId, [
+  const result = await requireRole(organisationId, [
     'owner',
     'admin',
     'member',
   ])
 
-  // ⛔ NO redirects after this point
+  if (!result.ok) {
+    if (result.reason === 'unauthenticated') {
+      redirect('/auth/login')
+    }
+
+    if (result.reason === 'no-org') {
+      redirect('/onboarding/create-organisation')
+    }
+
+    redirect('/')
+  }
+
+  const { ctx } = result
 
   return (
-    <main className="p-10 space-y-2">
+    <main className="p-10">
       <h1 className="text-2xl font-bold">
-        {ctx.org!.name}
+        {ctx.org.name}
       </h1>
 
       <p className="text-muted-foreground">
@@ -28,5 +41,6 @@ export default async function OrganisationDashboardPage({
     </main>
   )
 }
+
 
 
