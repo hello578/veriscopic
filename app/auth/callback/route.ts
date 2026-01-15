@@ -1,8 +1,15 @@
-import { NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
+import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export async function GET(req: NextRequest) {
+  const url = new URL(req.url)
+  const code = url.searchParams.get('code')
+
+  if (!code) {
+    return NextResponse.redirect(new URL('/auth/login', req.url))
+  }
+
   const res = NextResponse.redirect(new URL('/', req.url))
 
   const supabase = createServerClient(
@@ -22,11 +29,11 @@ export async function GET(req: NextRequest) {
     }
   )
 
-  const code = req.nextUrl.searchParams.get('code')
+  await supabase.auth.exchangeCodeForSession(code)
 
-  if (code) {
-    await supabase.auth.exchangeCodeForSession(code)
-  }
+  // 🚫 DO NOT redirect to /dashboard here
+  // Root (/) will decide onboarding vs org dashboard
 
   return res
 }
+

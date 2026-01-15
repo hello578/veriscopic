@@ -1,32 +1,20 @@
 import { supabaseServerRead } from '@/lib/supabase/server-read'
-import type { UserOrgContext } from '@/lib/types/rbac'
+import type { Role } from './types'
 
-/**
- * Resolve the current user's organisation + role context.
- *
- * v1 behaviour:
- * - User must belong to at least one organisation
- * - First organisation is treated as active
- *
- * (Can later be extended to support org switching.)
- */
-export async function getUserOrgContext(): Promise<UserOrgContext> {
+export async function getUserOrgContext(organisationId: string) {
   const supabase = await supabaseServerRead()
 
+  // 1️⃣ Auth
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // 🔐 Not authenticated
   if (!user) {
-    return {
-      user: null,
-      org: null,
-      role: null,
-    }
+    return { user: null, org: null, role: null }
   }
 
-  const { data: memberships, error } = await supabase
+  // 2️⃣ Membership lookup
+  const { data: membership } = await supabase
     .from('organisation_members')
     .select(
       `
@@ -38,35 +26,37 @@ export async function getUserOrgContext(): Promise<UserOrgContext> {
     `
     )
     .eq('user_id', user.id)
-    .limit(1)
+    .eq('organisation_id', organisationId)
+    .single()
 
-  if (error || !memberships || memberships.length === 0) {
-    return {
-      user: { id: user.id, email: user.email ?? undefined },
-      org: null,
-      role: null,
-    }
+  if (!membership || !membership.organisations) {
+    return { user, org: null, role: null }
   }
 
-  const membership = memberships[0]
+  /**
+   * 🔑 IMPORTANT:
+   * Supabase types declare joins as arrays
+   * even when `.single()` is used.
+   * We must normalize manually.
+   */
+  const org = Array.isArray(membership.organisations)
+    ? membership.organisations[0]
+    : membership.organisations
 
-  // 🔑 Supabase returns organisations as an array — unwrap it
-  const organisation = membership.organisations?.[0] ?? null
-
-  if (!organisation) {
-    return {
-      user: { id: user.id, email: user.email ?? undefined },
-      org: null,
-      role: null,
-    }
+  if (!org) {
+    return { user, org: null, role: null }
   }
 
   return {
-    user: { id: user.id, email: user.email ?? undefined },
-    org: {
-      id: organisation.id,
-      name: organisation.name,
+    user: {
+      id: user.id,
+      email: user.email ?? undefined,
     },
-    role: membership.role_key,
+    org: {
+      id: org.id,
+      name: org.name,
+    },
+    role: membership.role_key as Role,
   }
 }
+
