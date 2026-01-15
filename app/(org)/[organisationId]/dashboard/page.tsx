@@ -1,11 +1,9 @@
-// app/(org)/[organisationId]/dashboard/page.tsx
+ // app/(org)/[organisationId]/dashboard/page.tsx
 
 import { redirect } from 'next/navigation'
-import {
-  requireMember,
-  hasRole,
-} from '@/lib/rbac/guards'
+import { requireMember, hasRole } from '@/lib/rbac/guards'
 
+import { DashboardHeader } from './components/dashboard-header'
 import { OrganisationOverview } from './components/organisation-overview'
 import { ComplianceCompletenessCard } from './components/compliance-completeness-card'
 import { ResponsibilityMap } from './components/responsibility-map'
@@ -17,18 +15,25 @@ import { getCurrentPlatformDocuments } from '@/lib/legal/read-documents'
 import { getOrganisationAcceptanceEvents } from '@/lib/legal/read-acceptance'
 import { computeCompleteness } from '@/lib/legal/completeness'
 
+function formatAcceptedDate(iso?: string | null) {
+  if (!iso) return null
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return null
+  return d.toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: '2-digit',
+  })
+}
+
 export default async function OrganisationDashboardPage({
   params,
 }: {
   params: Promise<{ organisationId: string }>
 }) {
-  // ─────────────────────────────────────────────
-  // Resolve params + RBAC
-  // ─────────────────────────────────────────────
   const { organisationId } = await params
 
   const result = await requireMember(organisationId)
-
   if (!result.ok) {
     switch (result.reason) {
       case 'unauthenticated':
@@ -41,81 +46,97 @@ export default async function OrganisationDashboardPage({
   }
 
   const { ctx } = result
+  if (!ctx.org || !ctx.user) redirect('/')
 
-  if (!ctx.org || !ctx.user) {
-    redirect('/')
-  }
-
-  // ─────────────────────────────────────────────
-  // Phase 3.2 — READ-ONLY Supabase wiring
-  // ─────────────────────────────────────────────
   const [currentDocs, acceptanceEvents] = await Promise.all([
     getCurrentPlatformDocuments(),
     getOrganisationAcceptanceEvents(ctx.org.id),
   ])
 
+  // ─────────────────────────────────────────────
+  // Acceptance state wiring (key upgrade)
+  // ─────────────────────────────────────────────
+  const acceptedDocIds = new Set(
+    acceptanceEvents.map((e) => e.document_id)
+  )
+
   const completeness = computeCompleteness({
     currentDocs,
-    hasAISystems: false,      // flips when AI registry ships
-    hasAccountability: true,  // implied by ownership/admin roles
+    hasAISystems: false, // flips when AI registry ships
+    hasAccountability: true,
   })
 
-  // ─────────────────────────────────────────────
-  // Render
-  // ─────────────────────────────────────────────
+  const acceptedOn = acceptanceEvents.length
+  ? formatAcceptedDate(
+      acceptanceEvents
+        .map((e) => e.accepted_at)
+        .sort()
+        .at(-1)
+    )
+  : null
+
   return (
-    <main className="p-10 space-y-8">
-      <header>
-        <h1 className="text-2xl font-bold">
-          {ctx.org.name}
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Role: {ctx.role}
-        </p>
-      </header>
+    <main className="py-10">
+      <div className="mx-auto max-w-7xl px-6 space-y-12">
 
-      {/* Organisation + Compliance summary */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <OrganisationOverview
-          name={ctx.org.name}
-          memberCount={1}
+        {/* ───────── Header ───────── */}
+        <DashboardHeader
+          organisationName={ctx.org.name}
+          userEmail={ctx.user.email ?? undefined}
+          role={ctx.role ?? 'member'}
         />
-        <ComplianceCompletenessCard
-          completeness={completeness}
-        />
-      </div>
 
-      {/* Governance & legal state */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <ResponsibilityMap />
-
-        <div className="space-y-4">
-          <LegalStatusTable
-            documents={currentDocs.map((doc) => ({
-              id: doc.id,
-              name: doc.name,
-              version: doc.version,
-            }))}
+        {/* ───────── Hero ───────── */}
+        <section className="grid gap-6 lg:grid-cols-3">
+          <OrganisationOverview
+            name={ctx.org.name}
+            memberCount={1}
           />
 
-          {/* Acceptance CTA — OWNER / ADMIN ONLY */}
-          {hasRole(ctx, ['owner', 'admin']) && (
-            <AcceptDocumentsCTA
+          <div className="lg:col-span-2">
+            <ComplianceCompletenessCard
+              completeness={completeness}
               organisationId={ctx.org.id}
             />
-          )}
-        </div>
-      </div>
+          </div>
+        </section>
 
-      {/* Evidence */}
-      <EvidenceLog
-        events={acceptanceEvents.map((event) => ({
-          accepted_at: event.accepted_at,
-        }))}
-      />
+        {/* ───────── Governance ───────── */}
+        <section className="grid gap-8 lg:grid-cols-5">
+          <div className="lg:col-span-2">
+            <ResponsibilityMap />
+          </div>
+
+          <div className="lg:col-span-3 space-y-6">
+            <LegalStatusTable
+              documents={currentDocs.map((doc) => ({
+                id: doc.id,
+                name: doc.name,
+                version: doc.version,
+                accepted: acceptedDocIds.has(doc.id),
+              }))}
+            />
+
+            {hasRole(ctx, ['owner', 'admin']) && (
+              <AcceptDocumentsCTA
+                organisationId={ctx.org.id}
+                acceptedOn={acceptedOn}
+              />
+            )}
+          </div>
+        </section>
+
+        {/* ───────── Evidence ───────── */}
+        <section className="space-y-3">
+          <EvidenceLog
+            events={acceptanceEvents.map((e) => ({
+              accepted_at: e.accepted_at,
+              document_id: e.document_id,
+            }))}
+          />
+        </section>
+
+      </div>
     </main>
   )
 }
-
-
-

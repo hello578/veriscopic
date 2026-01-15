@@ -1,9 +1,10 @@
 // lib/legal/read-acceptance.ts
+
 import { supabaseServerRead } from '@/lib/supabase/server-read'
 
 export type AcceptanceEvent = {
   accepted_at: string
-  document_name: string
+  document_id: string
 }
 
 export async function getOrganisationAcceptanceEvents(
@@ -11,21 +12,17 @@ export async function getOrganisationAcceptanceEvents(
 ) {
   const supabase = await supabaseServerRead()
 
-  const { data, error } = await supabase
-    .from('terms_acceptance')
-    .select(`
-      accepted_at,
-      legal_documents (
-        name
-      )
-    `)
-    .eq('organisation_id', organisationId)
-    .order('accepted_at', { ascending: false })
+const { data, error } = await supabase
+  .from('terms_acceptance')
+  .select('accepted_at, document_id')
+  .eq('organisation_id', organisationId)
+  .order('accepted_at', { ascending: false })
+
 
   if (error) throw error
 
   return (data ?? []).map((row: any) => ({
     accepted_at: row.accepted_at,
     document_name: row.legal_documents?.name ?? 'Document',
-  })) as AcceptanceEvent[]
+  })) as unknown as AcceptanceEvent[]
 }

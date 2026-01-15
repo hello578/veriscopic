@@ -1,4 +1,6 @@
 // lib/legal/actions/accept-platform-documents.ts
+
+// lib/legal/actions/accept-platform-documents.ts
 'use server'
 
 import { revalidatePath } from 'next/cache'
@@ -18,35 +20,54 @@ export async function acceptCurrentPlatformDocuments(
     throw new Error('Unauthenticated')
   }
 
-  // Read active documents (FK-backed)
+  // Fetch active platform documents (FK-backed)
   const { data: currentDocs, error: docsError } = await supabase
     .from('legal_documents_current')
-    .select(`
+    .select(
+      `
       id,
-      legal_documents:legal_documents_current_id_fkey (
+      legal_documents (
         content_hash
       )
-    `)
+    `
+    )
     .eq('active', true)
 
   if (docsError) throw docsError
   if (!currentDocs || currentDocs.length === 0) return
 
-  // Insert evidence (append-only; DB enforces hash integrity)
-  const inserts = currentDocs.map((row: any) => ({
-    organisation_id: organisationId,
-    user_id: user.id,
-    document_id: row.id,
-    content_hash: row.legal_documents?.content_hash,
-    accepted_at: new Date().toISOString(),
-  }))
+  /**
+   * Build immutable acceptance records
+   * legal_documents is an array → take [0]
+   */
+  const inserts = currentDocs
+    .map((row) => {
+      const contentHash = row.legal_documents?.[0]?.content_hash
+      if (!contentHash) return null
 
-  const { error: insertError } = await supabase
+      return {
+        organisation_id: organisationId,
+        user_id: user.id,
+        document_id: row.id,
+        content_hash: contentHash,
+        accepted_at: new Date().toISOString(),
+      }
+    })
+    .filter(Boolean)
+
+  if (inserts.length === 0) return
+
+  /**
+   * Insert immutably
+   * Ignore duplicate constraint (already accepted)
+   */
+  const { error } = await supabase
     .from('terms_acceptance')
     .insert(inserts)
 
-  if (insertError) throw insertError
+  if (error && error.code !== '23505') {
+    throw error
+  }
 
-  // Refresh dashboard data
   revalidatePath(`/${organisationId}/dashboard`)
 }

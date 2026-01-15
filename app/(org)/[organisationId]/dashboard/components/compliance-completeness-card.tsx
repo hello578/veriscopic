@@ -1,17 +1,10 @@
 // app/(org)/[organisationId]/dashboard/components/compliance-completeness-card.tsx
+// app/(org)/[organisationId]/dashboard/components/compliance-completeness-card.tsx
 
 import { Card, CardHeader, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
-import { Info } from 'lucide-react'
+import { CheckCircle2, XCircle, AlertCircle } from 'lucide-react'
 
-/**
- * Types
- */
 export type CompletenessStatus = 'complete' | 'partial' | 'incomplete'
 
 export interface CompletenessBreakdown {
@@ -26,23 +19,35 @@ export interface CompletenessResult {
   breakdown: CompletenessBreakdown
 }
 
-interface ComplianceCompletenessCardProps {
+interface Props {
   completeness: CompletenessResult
+  organisationId: string
 }
 
-/**
- * Helpers
- */
-function badgeVariantForStatus(
-  status: CompletenessStatus
-): 'default' | 'secondary' | 'destructive' {
+/* ───────────────────────────────────────────── */
+/* Helpers                                      */
+/* ───────────────────────────────────────────── */
+
+function statusBadge(status: CompletenessStatus) {
   switch (status) {
     case 'complete':
-      return 'default'
+      return (
+        <Badge className="bg-emerald-100 text-emerald-700">
+          Complete
+        </Badge>
+      )
     case 'partial':
-      return 'secondary'
-    case 'incomplete':
-      return 'destructive'
+      return (
+        <Badge className="bg-amber-100 text-amber-700">
+          Partial
+        </Badge>
+      )
+    default:
+      return (
+        <Badge variant="secondary">
+          Incomplete
+        </Badge>
+      )
   }
 }
 
@@ -56,90 +61,131 @@ function labelForDoc(doc: string) {
       return 'AI Governance Disclosure'
     default:
       return doc
+        .replace(/-/g, ' ')
+        .replace(/\b\w/g, (l) => l.toUpperCase())
   }
 }
 
-/**
- * Component
- */
+/* ───────────────────────────────────────────── */
+/* Component                                    */
+/* ───────────────────────────────────────────── */
+
 export function ComplianceCompletenessCard({
   completeness,
-}: ComplianceCompletenessCardProps) {
-  const badgeVariant = badgeVariantForStatus(completeness.status)
+  organisationId,
+}: Props) {
+  const requiredDocs = completeness.breakdown.requiredDocs.length
+  const missingDocs = completeness.breakdown.missingDocs.length
+  const docsComplete = Math.max(0, requiredDocs - missingDocs)
+
+  const totalChecks = requiredDocs + 2
+  const completedChecks =
+    docsComplete +
+    (completeness.breakdown.hasAISystems ? 1 : 0) +
+    (completeness.breakdown.hasAccountability ? 1 : 0)
+
+  const pct =
+    totalChecks === 0
+      ? 0
+      : Math.round((completedChecks / totalChecks) * 100)
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0">
-        <div className="flex items-center gap-2">
-          <h3 className="text-sm font-medium">
-            Governance Completeness
-          </h3>
-
-          {/* Informational AI Act popover */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <button
-                type="button"
-                className="text-muted-foreground hover:text-foreground"
-                aria-label="AI Act alignment information"
-              >
-                <Info className="h-4 w-4" />
-              </button>
-            </PopoverTrigger>
-
-            <PopoverContent className="w-80 text-sm">
-              <p className="font-medium mb-2">
-                AI Act Alignment (Informational)
-              </p>
-              <p className="text-muted-foreground mb-3">
-                The following governance artefacts may support
-                record-keeping and transparency expectations
-                under the EU AI Act:
-              </p>
-              <ul className="list-disc pl-4 space-y-1 text-muted-foreground">
-                <li>AI system descriptions (Articles 11, 13)</li>
-                <li>Immutable records (Article 12)</li>
-                <li>Declared data categories (Article 10)</li>
-              </ul>
-              <p className="text-xs text-muted-foreground mt-3">
-                This platform does not assess legal compliance.
-              </p>
-            </PopoverContent>
-          </Popover>
+    <Card className="border-slate-200/60 bg-white shadow-sm">
+      <CardHeader className="space-y-4 pb-6">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h3 className="text-lg font-semibold text-slate-900">
+              Governance completeness
+            </h3>
+            <p className="text-sm text-slate-600">
+              Evidence-based record completeness. Not a legal assessment.
+            </p>
+          </div>
+          {statusBadge(completeness.status)}
         </div>
 
-        <Badge variant={badgeVariant}>
-          {completeness.status}
-        </Badge>
+        {/* Progress */}
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm">
+            <span className="text-slate-600">
+              {completedChecks} of {totalChecks} checks recorded
+            </span>
+            <span className="font-medium text-slate-900">
+              {pct}%
+            </span>
+          </div>
+
+          <div className="h-2 w-full rounded-full bg-slate-100">
+            <div
+              className={`h-full rounded-full transition-all ${
+                completeness.status === 'complete'
+                  ? 'bg-emerald-600'
+                  : 'bg-slate-800'
+              }`}
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+        </div>
       </CardHeader>
 
-      <CardContent className="space-y-3">
-        <p className="text-sm text-muted-foreground">
-          This reflects whether key governance artefacts have been
-          recorded. It does not assess legal compliance.
-        </p>
-
-        <ul className="text-sm space-y-1">
+      <CardContent className="space-y-5 pt-0">
+        {/* Required artefacts */}
+        <div className="space-y-2">
           {completeness.breakdown.requiredDocs.map((doc) => {
             const missing =
               completeness.breakdown.missingDocs.includes(doc)
 
             return (
-              <li key={doc}>
-                {missing ? '✗' : '✓'} {labelForDoc(doc)}
-              </li>
+              <div
+                key={doc}
+                className="flex items-center justify-between rounded-md border border-slate-200 px-3 py-2"
+              >
+                <span className="text-sm font-medium text-slate-900">
+                  {labelForDoc(doc)}
+                </span>
+
+                {missing ? (
+                  <span className="flex items-center gap-1 text-xs text-slate-500">
+                    <XCircle className="h-3 w-3" />
+                    Missing
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1 text-xs text-emerald-600">
+                    <CheckCircle2 className="h-3 w-3" />
+                    Recorded
+                  </span>
+                )}
+              </div>
             )
           })}
+        </div>
 
-          <li>
-            {completeness.breakdown.hasAISystems ? '✓' : '✗'} AI
-            systems recorded
-          </li>
-          <li>
-            {completeness.breakdown.hasAccountability ? '✓' : '✗'}{' '}
-            Accountability declared
-          </li>
-        </ul>
+        {/* Next step */}
+        {!completeness.breakdown.hasAISystems && (
+          <div className="flex items-center justify-between rounded-lg border border-blue-200/60 bg-blue-50/30 px-4 py-3">
+            <div>
+              <p className="text-sm font-medium text-blue-900">
+                Next step
+              </p>
+              <p className="text-sm text-blue-700">
+                Record at least one AI system to complete governance setup.
+              </p>
+            </div>
+
+            <a
+              href={`/${organisationId}/ai-systems`}
+              className="text-sm font-medium text-blue-700 hover:underline"
+            >
+              Record AI system
+            </a>
+          </div>
+        )}
+
+        {/* Trust signal */}
+        <p className="text-xs text-slate-500 pt-2">
+          Last updated automatically from recorded evidence
+        </p>
       </CardContent>
     </Card>
   )
