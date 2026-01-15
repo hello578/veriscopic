@@ -5,40 +5,37 @@
 
 import { Card, CardHeader, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Clock, Download } from 'lucide-react'
+import { Clock, FileJson, FileText } from 'lucide-react'
+
+type EvidenceEvent = {
+  accepted_at: string
+}
+
+function timeAgo(iso: string) {
+  const diffMs = Date.now() - new Date(iso).getTime()
+  const mins = Math.floor(diffMs / 60000)
+  if (mins < 1) return 'just now'
+  if (mins < 60) return `${mins}m ago`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `${hrs}h ago`
+  return `${Math.floor(hrs / 24)}d ago`
+}
 
 export function EvidenceLog({
   organisationId,
   events,
 }: {
   organisationId: string
-  events: {
-    accepted_at: string
-    document_name?: string
-    user_email?: string
-    role?: string
-    content_hash?: string
-  }[]
+  events: EvidenceEvent[]
 }) {
-  async function handleExport() {
-    const res = await fetch(
-      `/${organisationId}/evidence/export`
-    )
-
-    if (!res.ok) {
-      alert('Failed to export evidence pack')
-      return
-    }
-
-    const blob = await res.blob()
-    const url = URL.createObjectURL(blob)
-
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `veriscopic-evidence-${organisationId}.json`
-    a.click()
-
-    URL.revokeObjectURL(url)
+  function download(path: string, filename: string) {
+    const url = `${path}?organisationId=${organisationId}`
+    const link = document.createElement('a')
+    link.href = url
+    link.download = filename
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
   }
 
   return (
@@ -49,19 +46,40 @@ export function EvidenceLog({
             Evidence log
           </h3>
           <p className="text-xs text-slate-500">
-            Immutable, append-only records
+            Immutable, append-only records derived from governance evidence
           </p>
         </div>
 
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleExport}
-          className="flex items-center gap-2"
-        >
-          <Download className="h-4 w-4" />
-          Export evidence pack
-        </Button>
+        {/* ───── Export actions ───── */}
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              download(
+                '/api/evidence-pack/json',
+                `veriscopic-evidence-pack-${organisationId}.json`
+              )
+            }
+          >
+            <FileJson className="mr-2 h-4 w-4" />
+            JSON
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              download(
+                '/api/evidence-pack/pdf',
+                `veriscopic-evidence-pack-${organisationId}.pdf`
+              )
+            }
+          >
+            <FileText className="mr-2 h-4 w-4" />
+            PDF
+          </Button>
+        </div>
       </CardHeader>
 
       <CardContent className="space-y-4">
@@ -76,25 +94,17 @@ export function EvidenceLog({
             key={i}
             className="flex gap-3 rounded-md border border-slate-100 px-3 py-2"
           >
-            <Clock className="h-4 w-4 text-slate-400 mt-1" />
+            <Clock className="mt-1 h-4 w-4 text-slate-400" />
 
             <div className="space-y-1">
+              {/* Event label — future-proof */}
               <p className="text-sm font-medium text-slate-900">
-                Accepted platform documents
+                Platform documents accepted
               </p>
 
-              <p className="text-xs text-slate-600">
-                By {e.user_email ?? 'Organisation owner'}
-                {e.role ? ` (${e.role})` : ''}
-              </p>
-
-              {e.content_hash && (
-                <p className="text-xs text-slate-500 font-mono">
-                  Hash: {e.content_hash.slice(0, 8)}…
-                </p>
-              )}
-
+              {/* Time — relative + absolute */}
               <p className="text-xs text-slate-400">
+                {timeAgo(e.accepted_at)} ·{' '}
                 {new Date(e.accepted_at).toLocaleString()}
               </p>
             </div>

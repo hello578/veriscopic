@@ -128,12 +128,15 @@ export default async function OrganisationDashboardPage({
 
         {/* ───────── Evidence ───────── */}
         <section className="space-y-3">
-          <EvidenceLog
-            events={acceptanceEvents.map((e) => ({
-              accepted_at: e.accepted_at,
-              document_id: e.document_id,
-            }))}
-          />
+        <EvidenceLog
+  organisationId={ctx.org.id}
+  events={acceptanceEvents.map((e) => ({
+    accepted_at: e.accepted_at,
+  }))}
+/>
+
+
+
         </section>
 
       </div>
