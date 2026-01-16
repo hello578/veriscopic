@@ -23,6 +23,10 @@
   --color-success-bg: #ecfdf5;
   --color-success-fg: #065f46;
 }
+[data-radix-popper-content-wrapper] {
+  isolation: isolate;
+}
+
 
 body {
   background-color: var(--color-bg);
@@ -35,4 +39,23 @@ body {
   * {
     border-color: var(--color-border);
   }
+/* --------------------------------------------------
+   Radix Portal Isolation (DO NOT REMOVE)
+   Required for Tooltip / Popover / Dialog visibility
+-------------------------------------------------- */
+
+  /* 🔒 Radix hard isolation – REQUIRED */
+[data-radix-popper-content-wrapper],
+[data-radix-portal] {
+  isolation: isolate;
+  background: transparent !important;
+}
+
+/* Force visible backgrounds for all popups */
+[data-radix-popper-content-wrapper] > *,
+[data-radix-portal] > * {
+  background-color: white !important;
+  opacity: 1 !important;
+}
+
 }

@@ -1,5 +1,7 @@
 // app/(org)/[organisationId]/dashboard/components/evidence-log.tsx
 
+// app/(org)/[organisationId]/dashboard/components/evidence-log.tsx
+
 'use client'
 
 import { Card, CardHeader, CardContent } from '@/components/ui/card'
@@ -44,10 +46,11 @@ export function EvidenceLog({
   }
 
   return (
-    <Card className="border-slate-200 bg-white shadow-sm">
+    <Card className="border border-slate-200 bg-white shadow-sm">
       <CardHeader className="flex items-start justify-between gap-6 px-6 pb-6">
+        {/* Title + tooltip */}
         <div className="space-y-1">
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
             <h3 className="text-sm font-semibold text-slate-900">
               Evidence log
             </h3>
@@ -57,22 +60,29 @@ export function EvidenceLog({
                 <TooltipTrigger asChild>
                   <button
                     type="button"
-                    className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                    className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition"
+                    aria-label="What is the evidence log?"
                   >
                     <Info className="h-4 w-4" />
                   </button>
                 </TooltipTrigger>
 
-                <TooltipContent>
+                <TooltipContent
+                  side="top"
+                  align="start"
+                  sideOffset={10}
+                  className="max-w-sm rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-xl"
+                >
                   <div className="space-y-2">
-                    <p className="font-medium">
+                    <p className="font-medium text-slate-900">
                       Immutable evidence record
                     </p>
                     <p>
-                      This log contains append-only governance evidence derived
-                      from recorded actions such as legal document acceptance.
+                      This log contains append-only governance evidence generated
+                      automatically from recorded actions such as platform
+                      document acceptance.
                     </p>
-                    <p className="text-slate-600">
+                    <p className="text-slate-500">
                       Entries cannot be edited or deleted and may be exported for
                       audit or regulatory review.
                     </p>
@@ -87,10 +97,12 @@ export function EvidenceLog({
           </p>
         </div>
 
+        {/* Export actions */}
         <div className="flex items-center gap-2 pt-1">
           <Button
             variant="outline"
             size="sm"
+            className="font-medium"
             onClick={() =>
               download(
                 '/api/evidence-pack/json',
@@ -105,6 +117,7 @@ export function EvidenceLog({
           <Button
             variant="outline"
             size="sm"
+            className="font-medium"
             onClick={() =>
               download(
                 '/api/evidence-pack/pdf',
@@ -120,21 +133,23 @@ export function EvidenceLog({
 
       <CardContent className="space-y-3 px-6 pb-6">
         {events.length === 0 && (
-          <p className="text-sm text-slate-500">
+          <div className="rounded-lg border border-dashed border-slate-200 px-4 py-6 text-sm text-slate-500">
             No governance evidence has been recorded yet.
-          </p>
+          </div>
         )}
 
         {events.map((e, i) => (
           <div
             key={i}
-            className="flex gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3"
+            className="flex gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 transition hover:bg-slate-100"
           >
             <Clock className="mt-0.5 h-4 w-4 text-slate-400" />
+
             <div className="space-y-1">
               <p className="text-sm font-medium text-slate-900">
                 Platform documents accepted
               </p>
+
               <p className="text-xs text-slate-500">
                 {timeAgo(e.accepted_at)} ·{' '}
                 {new Date(e.accepted_at).toLocaleString()}
@@ -146,5 +161,6 @@ export function EvidenceLog({
     </Card>
   )
 }
+
 
 

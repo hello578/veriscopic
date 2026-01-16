@@ -30,7 +30,7 @@ export function ResponsibilityMap() {
   ]
 
   return (
-    <Card className="h-full bg-background shadow-sm ring-1 ring-border">
+    <Card className="h-full bg-white shadow-sm ring-1 ring-border">
       <CardHeader className="pb-4 px-6 pb-6">
         <div className="space-y-1">
           <h3 className="text-base font-semibold tracking-tight">
@@ -49,7 +49,7 @@ export function ResponsibilityMap() {
             className={`rounded-lg border ${bg} p-4`}
           >
             <div className="flex gap-3">
-              <div className={`rounded-lg bg-background p-2 ${accent}`}>
+              <div className={`rounded-lg bg-white p-2 ${accent}`}>
                 <Icon className="h-4 w-4" />
               </div>
               <div className="space-y-1">

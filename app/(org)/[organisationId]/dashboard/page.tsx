@@ -133,14 +133,21 @@ export default async function OrganisationDashboardPage({
           </div>
 
           <div className="lg:col-span-3 space-y-6">
-            <LegalStatusTable
-              documents={currentDocs.map((doc) => ({
-                id: doc.id,
-                name: doc.name,
-                version: doc.version,
-                accepted: acceptedDocIds.has(doc.id),
-              }))}
-            />
+<LegalStatusTable
+  rows={currentDocs.map((doc) => {
+    const isAccepted = acceptedDocIds.has(doc.id)
+
+    return {
+      id: doc.id,
+      name: doc.name,
+      version: doc.version,
+      isCurrent: true, // currentDocs = authoritative current set
+      status: isAccepted ? 'accepted' : 'pending',
+    }
+  })}
+/>
+
+
 
             {hasRole(ctx, ['owner', 'admin']) && (
               <AcceptDocumentsCTA

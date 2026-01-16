@@ -1,5 +1,6 @@
 
 // app/(org)/[organisationId]/dashboard/components/accept-documents-cta.tsx
+// app/(org)/[organisationId]/dashboard/components/accept-documents-cta.tsx
 
 'use client'
 
@@ -26,10 +27,6 @@ export function AcceptDocumentsCTA({
   const [isPending, startTransition] = useTransition()
   const [showDetails, setShowDetails] = useState(false)
 
-  /**
-   * Human-readable acceptance timestamp
-   * (stable, locale-aware, audit-appropriate)
-   */
   const acceptedOnLabel = useMemo(() => {
     if (!acceptedOn) return null
     const d = new Date(acceptedOn)
@@ -44,21 +41,13 @@ export function AcceptDocumentsCTA({
     })
   }, [acceptedOn])
 
-  /* ─────────────────────────────────────────────
-     ACCEPTED (IMMUTABLE STATE)
-  ───────────────────────────────────────────── */
+  /* ───────── Accepted (immutable) ───────── */
 
   if (acceptedOnLabel) {
     return (
-      <section
-        aria-labelledby="documents-accepted-heading"
-        className="rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4 space-y-4"
-      >
+      <section className="rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4 space-y-4">
         <div className="space-y-1">
-          <p
-            id="documents-accepted-heading"
-            className="text-sm font-semibold text-emerald-900"
-          >
+          <p className="text-sm font-semibold text-emerald-900">
             Platform documents accepted
           </p>
 
@@ -122,20 +111,12 @@ export function AcceptDocumentsCTA({
     )
   }
 
-  /* ─────────────────────────────────────────────
-     CALL-TO-ACTION (PRE-ACCEPTANCE)
-  ───────────────────────────────────────────── */
+  /* ───────── CTA (pre-acceptance) ───────── */
 
   return (
-    <section
-      aria-labelledby="accept-documents-heading"
-      className="rounded-xl border border-slate-200 bg-white px-5 py-5 space-y-4"
-    >
+    <section className="rounded-xl border border-slate-200 bg-white px-5 py-5 space-y-4">
       <div className="space-y-1">
-        <p
-          id="accept-documents-heading"
-          className="text-sm font-semibold text-slate-900"
-        >
+        <p className="text-sm font-semibold text-slate-900">
           Accept current platform documents
         </p>
 
@@ -159,3 +140,4 @@ export function AcceptDocumentsCTA({
     </section>
   )
 }
+
