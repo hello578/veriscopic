@@ -1,4 +1,5 @@
 // app/(org)/[organisationId]/dashboard/components/dashboard-header.tsx
+// app/(org)/[organisationId]/dashboard/components/dashboard-header.tsx
 'use client'
 
 import Image from 'next/image'
@@ -37,23 +38,23 @@ export function DashboardHeader({
             </span>
           </div>
 
-          {/* Actions + Context */}
-          <div className="flex items-center gap-6">
-            {/* Soft primary action */}
-
-            {/* Org + user context */}
-            <div className="text-right leading-tight">
-              <p className="text-sm font-medium text-slate-900">
-                {organisationName}
-              </p>
-              {(userEmail || role) && (
-                <p className="text-xs text-slate-500">
-                  {userEmail}
-                  {userEmail && role ? ' • ' : ''}
-                  {role}
-                </p>
-              )}
+          {/* Org + user context */}
+          <div className="text-right leading-tight">
+            <div className="text-sm font-medium text-slate-900">
+              {organisationName}
             </div>
+
+            <div className="text-xs text-slate-500">
+              Governance &amp; evidence dashboard
+            </div>
+
+            {(userEmail || role) && (
+              <div className="mt-0.5 text-xs text-slate-400">
+                {userEmail}
+                {userEmail && role ? ' • ' : ''}
+                {role}
+              </div>
+            )}
           </div>
         </div>
       </div>

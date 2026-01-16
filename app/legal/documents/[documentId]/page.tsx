@@ -1,82 +1,188 @@
 // app/legal/documents/[documentId]/page.tsx
+// app/legal/documents/[documentId]/page.tsx
 
-
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { supabaseServerRead } from '@/lib/supabase/server-read'
+import { requireMember } from '@/lib/rbac/guards'
 import { Card, CardHeader, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { ArrowLeft, FileDown } from 'lucide-react'
-import Link from 'next/link'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
+import { AlertTriangle, CheckCircle2 } from 'lucide-react'
 
-export default async function LegalDocumentViewerPage({
+import { getOrganisationAcceptanceEvents } from '@/lib/legal/read-acceptance'
+
+function formatDate(iso?: string | null) {
+  if (!iso) return null
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return null
+  return d.toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: '2-digit',
+  })
+}
+
+function daysSince(iso?: string | null) {
+  if (!iso) return null
+  const then = new Date(iso).getTime()
+  if (Number.isNaN(then)) return null
+  const now = Date.now()
+  return Math.floor((now - then) / (1000 * 60 * 60 * 24))
+}
+
+export default async function LegalDocumentPage({
   params,
 }: {
   params: Promise<{ documentId: string }>
 }) {
   const { documentId } = await params
 
+  // We still need org context → derive from session
   const supabase = await supabaseServerRead()
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
 
-  const { data, error } = await supabase
+  if (!session) redirect('/auth/login')
+
+  // Fetch organisation membership via RBAC
+  // You already enforce org context upstream in dashboard navigation
+  const { data: memberships } = await supabase
+    .from('organisation_members')
+    .select('organisation_id')
+    .eq('user_id', session.user.id)
+    .limit(1)
+
+  const organisationId = memberships?.[0]?.organisation_id
+  if (!organisationId) redirect('/onboarding/create-organisation')
+
+  const result = await requireMember(organisationId)
+  if (!result.ok) redirect('/')
+
+  // Fetch document (platform-wide)
+  const { data: document, error } = await supabase
     .from('legal_documents')
-    .select(`
+    .select(
+      `
       id,
       name,
       version,
       content,
-      published_at
-    `)
+      content_hash,
+      published_at,
+      status,
+      jurisdiction
+    `
+    )
     .eq('id', documentId)
     .single()
 
-  if (error || !data) {
-    notFound()
-  }
+  if (error || !document) notFound()
+
+  // Fetch acceptance events for org, then filter
+  const acceptanceEvents = await getOrganisationAcceptanceEvents(organisationId)
+  const acceptance = acceptanceEvents.find(
+    (e) => e.document_id === document.id
+  )
+
+  const acceptedOn = formatDate(acceptance?.accepted_at)
+  const acceptedDaysAgo = daysSince(acceptance?.accepted_at)
+
+  const isAccepted = Boolean(acceptance)
+  const isOutdated =
+    isAccepted && acceptance?.content_hash !== document.content_hash
 
   return (
     <main className="py-10">
-      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 space-y-6">
-        {/* header */}
-        <div className="flex items-center justify-between">
-          <Link
-            href="javascript:history.back()"
-            className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back
-          </Link>
-
-          <Button variant="outline" size="sm" disabled>
-            <FileDown className="mr-2 h-4 w-4" />
-            Download PDF
-          </Button>
-        </div>
-
-        <Card className="border-slate-200/60 bg-white shadow-sm">
-          <CardHeader className="px-6 pb-6">
-            <h1 className="text-xl font-semibold text-slate-900">
-              {data.name}
+      <div className="mx-auto max-w-4xl px-6 space-y-8">
+        {/* Header */}
+        <header className="space-y-2">
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-semibold text-slate-900">
+              {document.name}
             </h1>
-            <p className="text-xs text-slate-500">
-              Version {data.version}
-              {data.published_at && (
-                <> · Published {new Date(data.published_at).toLocaleDateString()}</>
-              )}
-            </p>
+
+            {document.status === 'active' && (
+              <Badge className="bg-emerald-100 text-emerald-700">
+                Active
+              </Badge>
+            )}
+          </div>
+
+          <p className="text-sm text-slate-600">
+            Version {document.version}
+            {document.jurisdiction && <> · {document.jurisdiction}</>}
+          </p>
+        </header>
+
+        {/* Acceptance status */}
+        <Card>
+          <CardHeader>
+            <h2 className="text-sm font-semibold">
+              Acceptance status (this organisation)
+            </h2>
           </CardHeader>
 
-          <CardContent className="px-6 pt-0 pb-6">
-            <pre className="whitespace-pre-wrap font-sans text-sm text-slate-800 leading-relaxed">
-              {data.content}
+          <CardContent className="space-y-3">
+            {isAccepted ? (
+              <>
+                <div className="flex items-center gap-2 text-sm text-emerald-700">
+                  <CheckCircle2 className="h-4 w-4" />
+                  Accepted
+                </div>
+
+                <p className="text-sm">
+                  Accepted on <strong>{acceptedOn}</strong>
+                  {acceptedDaysAgo !== null && (
+                    <> · {acceptedDaysAgo} days ago</>
+                  )}
+                </p>
+
+                {isOutdated && (
+                  <div className="rounded-md border border-amber-200 bg-amber-50 p-4">
+                    <div className="flex items-center gap-2 font-medium text-amber-900">
+                      <AlertTriangle className="h-4 w-4" />
+                      A newer version is available
+                    </div>
+                    <p className="mt-1 text-sm text-amber-800">
+                      You accepted v{acceptance?.version}. Current version is
+                      v{document.version}.
+                    </p>
+                    <p className="mt-1 text-xs text-amber-700">
+                      Your previous acceptance remains recorded.
+                    </p>
+                  </div>
+                )}
+              </>
+            ) : (
+              <p className="text-sm text-slate-600">
+                This document has not yet been accepted by your organisation.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Document text */}
+        <Card>
+          <CardHeader>
+            <h2 className="text-sm font-semibold">Document text (read-only)</h2>
+          </CardHeader>
+
+          <Separator />
+
+          <CardContent className="pt-4">
+            <pre className="whitespace-pre-wrap break-words text-sm leading-relaxed text-slate-800">
+              {document.content}
             </pre>
           </CardContent>
         </Card>
 
         <p className="text-xs text-slate-500">
-          Read-only view. Acceptance evidence is stored separately and immutably.
+          Acceptance records are immutable and audit-ready.
         </p>
       </div>
     </main>
   )
 }
+
 

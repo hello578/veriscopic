@@ -60,8 +60,8 @@ export function ComplianceCompletenessCard({
           <div className="space-y-1">
             <div className="flex items-center gap-1.5">
               <h3 className="text-lg font-semibold text-slate-900">
-                Governance completeness
-              </h3>
+                 Governance record status
+             </h3>
 
               <TooltipProvider delayDuration={150}>
                 <Tooltip>
@@ -109,8 +109,8 @@ export function ComplianceCompletenessCard({
             </div>
 
             <p className="text-sm text-slate-600">
-              Derived automatically from recorded evidence
-            </p>
+              Based on accepted platform documents and declared AI systems.
+           </p>
           </div>
 
           {statusBadge(completeness.status)}

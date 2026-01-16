@@ -11,7 +11,7 @@ export type CurrentDocument = {
   version: string
 }
 
-export async function getCurrentPlatformDocuments(): Promise<CurrentDocument[]> {
+export async function getCurrentPlatformDocuments(documentId: string): Promise<CurrentDocument[]> {
   const supabase = await supabaseServerRead()
 
   const { data, error } = await supabase

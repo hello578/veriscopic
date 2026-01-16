@@ -14,6 +14,7 @@ import { AcceptDocumentsCTA } from './components/accept-documents-cta'
 import { getCurrentPlatformDocuments } from '@/lib/legal/read-documents'
 import { getOrganisationAcceptanceEvents } from '@/lib/legal/read-acceptance'
 import { computeCompleteness } from '@/lib/legal/completeness'
+import { EvidencePackCard } from './components/evidence-pack-card'
 
 function formatAcceptedDate(iso?: string | null) {
   if (!iso) return null
@@ -78,7 +79,7 @@ export default async function OrganisationDashboardPage({
 
   return (
     <main className="py-10">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-12">
+      <div className="mx-auto max-w-4xl px-6 space-y-12">
 
         {/* ───────── Header ───────── */}
         <DashboardHeader
@@ -94,13 +95,14 @@ export default async function OrganisationDashboardPage({
             memberCount={1}
           />
 
-          <div className="lg:col-span-2">
-            <ComplianceCompletenessCard
-              completeness={completeness}
-              organisationId={ctx.org.id}
-            />
-          </div>
-        </section>
+            <div className="lg:col-span-2 space-y-6">
+    <ComplianceCompletenessCard
+      completeness={completeness}
+      organisationId={ctx.org.id}
+    />
+    <EvidencePackCard organisationId={ctx.org.id} />
+  </div>
+</section>
 
         {/* ───────── Acceptance summary ───────── */}
         <section>
