@@ -1,11 +1,16 @@
 // app/(org)/[organisationId]/dashboard/components/evidence-log.tsx
-// app/(org)/[organisationId]/dashboard/components/evidence-log.tsx
 
 'use client'
 
 import { Card, CardHeader, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Clock, FileJson, FileText } from 'lucide-react'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+import { Clock, FileJson, FileText, Info } from 'lucide-react'
 
 type EvidenceEvent = {
   accepted_at: string
@@ -39,19 +44,50 @@ export function EvidenceLog({
   }
 
   return (
-    <Card className="border-slate-200/60 bg-white shadow-sm">
-      <CardHeader className="flex flex-row items-start justify-between gap-4">
-        <div>
-          <h3 className="text-sm font-semibold text-slate-900">
-            Evidence log
-          </h3>
+    <Card className="border-slate-200 bg-white shadow-sm">
+      <CardHeader className="flex items-start justify-between gap-6 px-6 pb-6">
+        <div className="space-y-1">
+          <div className="flex items-center gap-1.5">
+            <h3 className="text-sm font-semibold text-slate-900">
+              Evidence log
+            </h3>
+
+            <TooltipProvider delayDuration={150}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                  >
+                    <Info className="h-4 w-4" />
+                  </button>
+                </TooltipTrigger>
+
+                <TooltipContent>
+                  <div className="space-y-2">
+                    <p className="font-medium">
+                      Immutable evidence record
+                    </p>
+                    <p>
+                      This log contains append-only governance evidence derived
+                      from recorded actions such as legal document acceptance.
+                    </p>
+                    <p className="text-slate-600">
+                      Entries cannot be edited or deleted and may be exported for
+                      audit or regulatory review.
+                    </p>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+
           <p className="text-xs text-slate-500">
-            Immutable, append-only records derived from governance evidence
+            System-generated records derived from governance actions
           </p>
         </div>
 
-        {/* ───── Export actions ───── */}
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2 pt-1">
           <Button
             variant="outline"
             size="sm"
@@ -82,28 +118,24 @@ export function EvidenceLog({
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 px-6 pb-6">
         {events.length === 0 && (
           <p className="text-sm text-slate-500">
-            No evidence recorded yet.
+            No governance evidence has been recorded yet.
           </p>
         )}
 
         {events.map((e, i) => (
           <div
             key={i}
-            className="flex gap-3 rounded-md border border-slate-100 px-3 py-2"
+            className="flex gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3"
           >
-            <Clock className="mt-1 h-4 w-4 text-slate-400" />
-
+            <Clock className="mt-0.5 h-4 w-4 text-slate-400" />
             <div className="space-y-1">
-              {/* Event label — future-proof */}
               <p className="text-sm font-medium text-slate-900">
                 Platform documents accepted
               </p>
-
-              {/* Time — relative + absolute */}
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-500">
                 {timeAgo(e.accepted_at)} ·{' '}
                 {new Date(e.accepted_at).toLocaleString()}
               </p>
@@ -114,4 +146,5 @@ export function EvidenceLog({
     </Card>
   )
 }
+
 

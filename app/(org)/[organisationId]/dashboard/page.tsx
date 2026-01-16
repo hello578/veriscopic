@@ -53,31 +53,32 @@ export default async function OrganisationDashboardPage({
     getOrganisationAcceptanceEvents(ctx.org.id),
   ])
 
-  // ─────────────────────────────────────────────
-  // Acceptance state wiring (key upgrade)
-  // ─────────────────────────────────────────────
   const acceptedDocIds = new Set(
     acceptanceEvents.map((e) => e.document_id)
   )
 
+  const acceptedOn = acceptanceEvents.length
+    ? formatAcceptedDate(
+        acceptanceEvents
+          .map((e) => e.accepted_at)
+          .sort()
+          .at(-1)
+      )
+    : null
+
   const completeness = computeCompleteness({
     currentDocs,
-    hasAISystems: false, // flips when AI registry ships
+    hasAISystems: false, // Phase 6 flips this
     hasAccountability: true,
   })
 
-  const acceptedOn = acceptanceEvents.length
-  ? formatAcceptedDate(
-      acceptanceEvents
-        .map((e) => e.accepted_at)
-        .sort()
-        .at(-1)
-    )
-  : null
+  const hasAcceptedAllDocs =
+    currentDocs.length > 0 &&
+    currentDocs.every((d) => acceptedDocIds.has(d.id))
 
   return (
     <main className="py-10">
-      <div className="mx-auto max-w-7xl px-6 space-y-12">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-12">
 
         {/* ───────── Header ───────── */}
         <DashboardHeader
@@ -86,7 +87,7 @@ export default async function OrganisationDashboardPage({
           role={ctx.role ?? 'member'}
         />
 
-        {/* ───────── Hero ───────── */}
+        {/* ───────── Organisation overview ───────── */}
         <section className="grid gap-6 lg:grid-cols-3">
           <OrganisationOverview
             name={ctx.org.name}
@@ -99,6 +100,30 @@ export default async function OrganisationDashboardPage({
               organisationId={ctx.org.id}
             />
           </div>
+        </section>
+
+        {/* ───────── Acceptance summary ───────── */}
+        <section>
+          {hasAcceptedAllDocs ? (
+            <div className="rounded-md border border-emerald-200 bg-emerald-50 p-4">
+              <p className="text-sm font-medium text-emerald-900">
+                Platform documents accepted
+              </p>
+              <p className="text-xs text-emerald-700">
+                Accepted on {acceptedOn} · Evidence recorded immutably
+              </p>
+            </div>
+          ) : (
+            <div className="rounded-md border border-amber-200 bg-amber-50 p-4">
+              <p className="text-sm font-medium text-amber-900">
+                Action required
+              </p>
+              <p className="text-xs text-amber-700">
+                You must accept the current platform documents to
+                complete governance setup.
+              </p>
+            </div>
+          )}
         </section>
 
         {/* ───────── Governance ───────── */}
@@ -128,15 +153,12 @@ export default async function OrganisationDashboardPage({
 
         {/* ───────── Evidence ───────── */}
         <section className="space-y-3">
-        <EvidenceLog
-  organisationId={ctx.org.id}
-  events={acceptanceEvents.map((e) => ({
-    accepted_at: e.accepted_at,
-  }))}
-/>
-
-
-
+          <EvidenceLog
+            organisationId={ctx.org.id}
+            events={acceptanceEvents.map((e) => ({
+              accepted_at: e.accepted_at,
+            }))}
+          />
         </section>
 
       </div>

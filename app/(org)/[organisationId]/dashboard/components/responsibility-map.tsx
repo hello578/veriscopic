@@ -31,7 +31,7 @@ export function ResponsibilityMap() {
 
   return (
     <Card className="h-full bg-background shadow-sm ring-1 ring-border">
-      <CardHeader className="pb-4">
+      <CardHeader className="pb-4 px-6 pb-6">
         <div className="space-y-1">
           <h3 className="text-base font-semibold tracking-tight">
             Responsibility Map
@@ -42,7 +42,7 @@ export function ResponsibilityMap() {
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-3 px-6 pt-0 pb-6">
         {roles.map(({ title, icon: Icon, description, accent, bg }) => (
           <div
             key={title}

@@ -15,7 +15,7 @@ export function OrganisationOverview({
 }: OrganisationOverviewProps) {
   return (
     <Card className="h-full border-slate-200/60 bg-white shadow-sm">
-      <CardHeader className="pb-4">
+      <CardHeader className="pb-4 px-6 pb-6">
         <div className="flex items-start gap-3">
           <div className="rounded-lg bg-slate-100 p-2.5">
             <Building2 className="h-5 w-5 text-slate-600" />
@@ -28,7 +28,7 @@ export function OrganisationOverview({
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 px-6 pt-0 pb-6">
         <div className="space-y-1">
           <p className="text-xs font-medium text-slate-500">
             Name

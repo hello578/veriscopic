@@ -1,5 +1,8 @@
+// app/layout.tsx
+
 import './globals.css'
 import type { Metadata } from 'next'
+import { TooltipProvider } from '@/components/ui/tooltip'
 
 export const metadata: Metadata = {
   title: 'Veriscopic',
@@ -12,8 +15,14 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" suppressHydrationWarning>
+      <body className="min-h-screen bg-background text-foreground antialiased">
+        <TooltipProvider delayDuration={150}>
+          {children}
+        </TooltipProvider>
+      </body>
     </html>
   )
 }
+
+

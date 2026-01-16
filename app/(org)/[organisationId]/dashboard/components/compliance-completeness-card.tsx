@@ -1,22 +1,25 @@
 // app/(org)/[organisationId]/dashboard/components/compliance-completeness-card.tsx
-// app/(org)/[organisationId]/dashboard/components/compliance-completeness-card.tsx
 
 import { Card, CardHeader, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { CheckCircle2, XCircle, AlertCircle } from 'lucide-react'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+import { CheckCircle2, XCircle, Info } from 'lucide-react'
 
 export type CompletenessStatus = 'complete' | 'partial' | 'incomplete'
 
-export interface CompletenessBreakdown {
-  requiredDocs: string[]
-  missingDocs: string[]
-  hasAISystems: boolean
-  hasAccountability: boolean
-}
-
 export interface CompletenessResult {
   status: CompletenessStatus
-  breakdown: CompletenessBreakdown
+  breakdown: {
+    requiredDocs: string[]
+    missingDocs: string[]
+    hasAISystems: boolean
+    hasAccountability: boolean
+  }
 }
 
 interface Props {
@@ -24,63 +27,24 @@ interface Props {
   organisationId: string
 }
 
-/* ───────────────────────────────────────────── */
-/* Helpers                                      */
-/* ───────────────────────────────────────────── */
-
 function statusBadge(status: CompletenessStatus) {
-  switch (status) {
-    case 'complete':
-      return (
-        <Badge className="bg-emerald-100 text-emerald-700">
-          Complete
-        </Badge>
-      )
-    case 'partial':
-      return (
-        <Badge className="bg-amber-100 text-amber-700">
-          Partial
-        </Badge>
-      )
-    default:
-      return (
-        <Badge variant="secondary">
-          Incomplete
-        </Badge>
-      )
+  if (status === 'complete') {
+    return <Badge className="bg-emerald-100 text-emerald-700">Complete</Badge>
   }
-}
-
-function labelForDoc(doc: string) {
-  switch (doc) {
-    case 'platform-terms':
-      return 'Platform Terms'
-    case 'privacy-notice':
-      return 'Privacy Notice'
-    case 'ai-governance-disclosure':
-      return 'AI Governance Disclosure'
-    default:
-      return doc
-        .replace(/-/g, ' ')
-        .replace(/\b\w/g, (l) => l.toUpperCase())
+  if (status === 'partial') {
+    return <Badge className="bg-amber-100 text-amber-700">Partial</Badge>
   }
+  return <Badge variant="secondary">Incomplete</Badge>
 }
-
-/* ───────────────────────────────────────────── */
-/* Component                                    */
-/* ───────────────────────────────────────────── */
 
 export function ComplianceCompletenessCard({
   completeness,
   organisationId,
 }: Props) {
-  const requiredDocs = completeness.breakdown.requiredDocs.length
-  const missingDocs = completeness.breakdown.missingDocs.length
-  const docsComplete = Math.max(0, requiredDocs - missingDocs)
-
-  const totalChecks = requiredDocs + 2
+  const totalChecks = completeness.breakdown.requiredDocs.length + 2
   const completedChecks =
-    docsComplete +
+    completeness.breakdown.requiredDocs.length -
+    completeness.breakdown.missingDocs.length +
     (completeness.breakdown.hasAISystems ? 1 : 0) +
     (completeness.breakdown.hasAccountability ? 1 : 0)
 
@@ -91,17 +55,64 @@ export function ComplianceCompletenessCard({
 
   return (
     <Card className="border-slate-200/60 bg-white shadow-sm">
-      <CardHeader className="space-y-4 pb-6">
-        {/* Header */}
+      <CardHeader className="space-y-4 pb-6 px-6">
         <div className="flex items-start justify-between gap-4">
-          <div>
-            <h3 className="text-lg font-semibold text-slate-900">
-              Governance completeness
-            </h3>
+          <div className="space-y-1">
+            <div className="flex items-center gap-1.5">
+              <h3 className="text-lg font-semibold text-slate-900">
+                Governance completeness
+              </h3>
+
+              <TooltipProvider delayDuration={150}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition"
+                      aria-label="What does governance completeness mean?"
+                    >
+                      <Info className="h-4 w-4" />
+                    </button>
+                  </TooltipTrigger>
+
+                  <TooltipContent
+                    side="top"
+                    align="start"
+                    sideOffset={10}
+                    className="
+                      max-w-sm
+                      rounded-xl
+                      border border-slate-200
+                      bg-white
+                      px-4 py-3
+                      text-sm
+                      leading-relaxed
+                      text-slate-700
+                      shadow-xl
+                    "
+                  >
+                    <div className="space-y-2">
+                      <p className="font-medium text-slate-900">
+                        Evidence-based indicator
+                      </p>
+                      <p>
+                        This score reflects whether required governance artefacts
+                        have been recorded in the system.
+                      </p>
+                      <p className="text-slate-500">
+                        It does not constitute legal advice or regulatory
+                        certification.
+                      </p>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+
             <p className="text-sm text-slate-600">
-              Evidence-based record completeness. Not a legal assessment.
+              Derived automatically from recorded evidence
             </p>
           </div>
+
           {statusBadge(completeness.status)}
         </div>
 
@@ -129,41 +140,36 @@ export function ComplianceCompletenessCard({
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-5 pt-0">
-        {/* Required artefacts */}
-        <div className="space-y-2">
-          {completeness.breakdown.requiredDocs.map((doc) => {
-            const missing =
-              completeness.breakdown.missingDocs.includes(doc)
+      <CardContent className="space-y-4 px-6 pt-0 pb-6">
+        {completeness.breakdown.requiredDocs.map((doc) => {
+          const missing = completeness.breakdown.missingDocs.includes(doc)
 
-            return (
-              <div
-                key={doc}
-                className="flex items-center justify-between rounded-md border border-slate-200 px-3 py-2"
-              >
-                <span className="text-sm font-medium text-slate-900">
-                  {labelForDoc(doc)}
+          return (
+            <div
+              key={doc}
+              className="flex items-center justify-between rounded-lg border border-slate-200 px-4 py-2"
+            >
+              <span className="text-sm font-medium text-slate-900">
+                {doc.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
+              </span>
+
+              {missing ? (
+                <span className="flex items-center gap-1 text-xs text-slate-500">
+                  <XCircle className="h-3 w-3" />
+                  Missing
                 </span>
+              ) : (
+                <span className="flex items-center gap-1 text-xs text-emerald-600">
+                  <CheckCircle2 className="h-3 w-3" />
+                  Recorded
+                </span>
+              )}
+            </div>
+          )
+        })}
 
-                {missing ? (
-                  <span className="flex items-center gap-1 text-xs text-slate-500">
-                    <XCircle className="h-3 w-3" />
-                    Missing
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-1 text-xs text-emerald-600">
-                    <CheckCircle2 className="h-3 w-3" />
-                    Recorded
-                  </span>
-                )}
-              </div>
-            )
-          })}
-        </div>
-
-        {/* Next step */}
         {!completeness.breakdown.hasAISystems && (
-          <div className="flex items-center justify-between rounded-lg border border-blue-200/60 bg-blue-50/30 px-4 py-3">
+          <div className="flex items-center justify-between rounded-xl border border-blue-200 bg-blue-50/40 px-4 py-3">
             <div>
               <p className="text-sm font-medium text-blue-900">
                 Next step
@@ -181,13 +187,7 @@ export function ComplianceCompletenessCard({
             </a>
           </div>
         )}
-
-        {/* Trust signal */}
-        <p className="text-xs text-slate-500 pt-2">
-          Last updated automatically from recorded evidence
-        </p>
       </CardContent>
     </Card>
   )
 }
-

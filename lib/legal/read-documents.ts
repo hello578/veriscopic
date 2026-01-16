@@ -1,4 +1,5 @@
 // lib/legal/read-documents.ts
+
 import { supabaseServerRead } from '@/lib/supabase/server-read'
 
 export type CurrentDocument = {
@@ -10,7 +11,7 @@ export type CurrentDocument = {
   version: string
 }
 
-export async function getCurrentPlatformDocuments() {
+export async function getCurrentPlatformDocuments(): Promise<CurrentDocument[]> {
   const supabase = await supabaseServerRead()
 
   const { data, error } = await supabase
@@ -21,13 +22,16 @@ export async function getCurrentPlatformDocuments() {
       jurisdiction,
       status,
       active,
-      legal_documents:legal_documents_current_id_fkey (
+      legal_documents:legal_documents!legal_documents_current_doc_fk (
         version
       )
     `)
     .eq('active', true)
 
-  if (error) throw error
+  if (error) {
+    console.error('[getCurrentPlatformDocuments]', error)
+    throw error
+  }
 
   return (data ?? []).map((row: any) => ({
     id: row.id,
@@ -36,5 +40,5 @@ export async function getCurrentPlatformDocuments() {
     status: row.status,
     active: row.active,
     version: row.legal_documents?.version ?? '—',
-  })) as CurrentDocument[]
+  }))
 }

@@ -20,29 +20,33 @@ export async function acceptCurrentPlatformDocuments(
     throw new Error('Unauthenticated')
   }
 
-  // Fetch active platform documents (FK-backed)
+  /**
+   * Fetch active platform documents
+   * FK is explicitly disambiguated
+   */
   const { data: currentDocs, error: docsError } = await supabase
     .from('legal_documents_current')
-    .select(
-      `
+    .select(`
       id,
-      legal_documents (
+      legal_documents:legal_documents!legal_documents_current_doc_fk (
         content_hash
       )
-    `
-    )
+    `)
     .eq('active', true)
 
-  if (docsError) throw docsError
+  if (docsError) {
+    console.error('[acceptCurrentPlatformDocuments]', docsError)
+    throw docsError
+  }
+
   if (!currentDocs || currentDocs.length === 0) return
 
   /**
    * Build immutable acceptance records
-   * legal_documents is an array → take [0]
    */
   const inserts = currentDocs
-    .map((row) => {
-      const contentHash = row.legal_documents?.[0]?.content_hash
+    .map((row: any) => {
+      const contentHash = row.legal_documents?.content_hash
       if (!contentHash) return null
 
       return {
@@ -59,7 +63,7 @@ export async function acceptCurrentPlatformDocuments(
 
   /**
    * Insert immutably
-   * Ignore duplicate constraint (already accepted)
+   * Ignore duplicate acceptance (unique constraint)
    */
   const { error } = await supabase
     .from('terms_acceptance')
@@ -69,5 +73,8 @@ export async function acceptCurrentPlatformDocuments(
     throw error
   }
 
+  /**
+   * Ensure dashboard reflects acceptance immediately
+   */
   revalidatePath(`/${organisationId}/dashboard`)
 }
