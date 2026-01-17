@@ -1,51 +1,48 @@
 // app/api/legal/documents/[documentId]/pdf/route.ts
+import 'server-only'
 
-import { NextResponse } from 'next/server'
-import { supabaseServerRead } from '@/lib/supabase/server-read'
-import { requireRole } from '@/lib/rbac/guards'
-import { renderSimpleDocumentPdf } from '@/lib/legal/render-document-pdf'
-
-export const runtime = 'nodejs'
+import { NextRequest, NextResponse } from 'next/server'
+import { requireMember } from '@/lib/rbac/guards'
+import { exportEvidencePack } from '@/lib/legal/export-evidence'
+import { signEvidencePack } from '@/lib/legal/sign-evidence'
 
 export async function GET(
-  _req: Request,
-  { params }: { params: { documentId: string } }
+  _request: NextRequest,
+  context: {
+    params: Promise<{ documentId: string }>
+  }
 ) {
-  const { documentId } = params
+  const { documentId } = await context.params
 
-  const supabase = await supabaseServerRead()
+  // ⬇️ TEMP: documentId maps to organisationId for now
+  // (adjust when documents are org-scoped properly)
+  const organisationId = documentId
 
-  const { data, error } = await supabase
-    .from('legal_documents')
-    .select(`
-      id,
-      name,
-      version,
-      content,
-      published_at,
-      organisation_id
-    `)
-    .eq('id', documentId)
-    .single()
+  // --- AuthN
+  const result = await requireMember(organisationId)
 
-  if (error || !data) {
-    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!result.ok || !result.ctx) {
+    return NextResponse.json(
+      { error: 'Unauthorised' },
+      { status: 401 }
+    )
   }
 
-  // ✅ RBAC: must belong to the org
-  await requireRole(data.organisation_id, ['owner', 'admin', 'member'])
+  // --- AuthZ
+  const { role } = result.ctx
+  if (!role || !['owner', 'admin'].includes(role)) {
+    return NextResponse.json(
+      { error: 'Forbidden' },
+      { status: 403 }
+    )
+  }
 
-  const pdfBytes = await renderSimpleDocumentPdf({
-    title: data.name,
-    version: data.version,
-    content: data.content,
-    publishedAt: data.published_at,
-  })
+  // --- Build evidence payload (JSON for now)
+  const evidencePack = await exportEvidencePack(organisationId)
+  const signedPack = signEvidencePack(evidencePack)
 
-  return new NextResponse(Buffer.from(pdfBytes), {
+  return NextResponse.json(signedPack, {
     headers: {
-      'Content-Type': 'application/pdf',
-      'Content-Disposition': `attachment; filename="${data.name}-v${data.version}.pdf"`,
       'Cache-Control': 'no-store',
     },
   })
