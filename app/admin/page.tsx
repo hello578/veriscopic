@@ -1,13 +1,11 @@
 // app/admin/page.tsx
-import { requireRole } from '@/lib/rbac/guards'
+// app/admin/page.tsx
+import { getAdminContext } from './server'
 
 export default async function AdminPage() {
-  const guard = await requireRole(
-    'org-id-goes-here',
-    ['owner', 'admin']
-  )
+  const ctx = await getAdminContext()
 
-  if (!guard.ok || !guard.ctx?.org) {
+  if (!ctx) {
     return (
       <main className="p-10">
         <h1 className="text-xl font-semibold">
@@ -17,7 +15,7 @@ export default async function AdminPage() {
     )
   }
 
-  const { org, role } = guard.ctx
+  const { org, role } = ctx
 
   return (
     <main className="p-10">
