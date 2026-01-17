@@ -74,12 +74,11 @@ export async function renderEvidencePackPdf(pack: EvidencePack): Promise<Uint8Ar
       const e = pack.evidence[i];
 
       const block = [
-        `${i + 1}. ${e.document_name} (${e.document_type ?? "unknown"})`,
-        `Version: ${e.version}   Jurisdiction: ${e.jurisdiction ?? "—"}`,
-        `Document ID: ${e.document_id}`,
+        `Document: ${e.document_name}`,
+        `Version: ${e.version}`,
+        `Jurisdiction: ${e.jurisdiction ?? '—'}`,
         `Content hash: ${e.content_hash}`,
         `Accepted at (UTC): ${e.accepted_at}`,
-        `Accepted by: ${e.accepted_by.email ?? "—"}`,
       ];
 
       const needed = block.length * lineH + 12;
