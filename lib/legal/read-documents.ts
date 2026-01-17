@@ -1,4 +1,7 @@
+
 // lib/legal/read-documents.ts
+// lib/legal/read-documents.ts
+import 'server-only'
 
 import { supabaseServerRead } from '@/lib/supabase/server-read'
 
@@ -11,7 +14,7 @@ export type CurrentDocument = {
   version: string
 }
 
-export async function getCurrentPlatformDocuments(documentId: string): Promise<CurrentDocument[]> {
+export async function getCurrentPlatformDocuments(): Promise<CurrentDocument[]> {
   const supabase = await supabaseServerRead()
 
   const { data, error } = await supabase
@@ -33,12 +36,12 @@ export async function getCurrentPlatformDocuments(documentId: string): Promise<C
     throw error
   }
 
-  return (data ?? []).map((row: any) => ({
+  return (data ?? []).map((row) => ({
     id: row.id,
     name: row.name,
     jurisdiction: row.jurisdiction,
     status: row.status,
     active: row.active,
-    version: row.legal_documents?.version ?? '—',
+    version: row.legal_documents?.[0]?.version ?? '—',
   }))
 }

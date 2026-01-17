@@ -1,4 +1,5 @@
  // app/(org)/[organisationId]/dashboard/page.tsx
+// app/(org)/[organisationId]/dashboard/page.tsx
 
 import { redirect } from 'next/navigation'
 import { requireMember, hasRole } from '@/lib/rbac/guards'
@@ -10,11 +11,14 @@ import { ResponsibilityMap } from './components/responsibility-map'
 import { LegalStatusTable } from './components/legal-status-table'
 import { EvidenceLog } from './components/evidence-log'
 import { AcceptDocumentsCTA } from './components/accept-documents-cta'
+import { EvidencePackCard } from './components/evidence-pack-card'
 
-import { getCurrentPlatformDocuments } from '@/lib/legal/read-documents'
+import {
+  getCurrentPlatformDocuments,
+  type CurrentDocument,
+} from '@/lib/legal/read-documents'
 import { getOrganisationAcceptanceEvents } from '@/lib/legal/read-acceptance'
 import { computeCompleteness } from '@/lib/legal/completeness'
-import { EvidencePackCard } from './components/evidence-pack-card'
 
 function formatAcceptedDate(iso?: string | null) {
   if (!iso) return null
@@ -54,7 +58,7 @@ export default async function OrganisationDashboardPage({
     getOrganisationAcceptanceEvents(ctx.org.id),
   ])
 
-  const acceptedDocIds = new Set(
+  const acceptedDocIds = new Set<string>(
     acceptanceEvents.map((e) => e.document_id)
   )
 
@@ -69,42 +73,41 @@ export default async function OrganisationDashboardPage({
 
   const completeness = computeCompleteness({
     currentDocs,
-    hasAISystems: false, // Phase 6 flips this
+    hasAISystems: false,
     hasAccountability: true,
   })
 
   const hasAcceptedAllDocs =
     currentDocs.length > 0 &&
-    currentDocs.every((d) => acceptedDocIds.has(d.id))
+    currentDocs.every((d: CurrentDocument) =>
+      acceptedDocIds.has(d.id)
+    )
 
   return (
     <main className="py-10">
       <div className="mx-auto max-w-4xl px-6 space-y-12">
 
-        {/* ───────── Header ───────── */}
         <DashboardHeader
           organisationName={ctx.org.name}
           userEmail={ctx.user.email ?? undefined}
           role={ctx.role ?? 'member'}
         />
 
-        {/* ───────── Organisation overview ───────── */}
         <section className="grid gap-6 lg:grid-cols-3">
           <OrganisationOverview
             name={ctx.org.name}
             memberCount={1}
           />
 
-            <div className="lg:col-span-2 space-y-6">
-    <ComplianceCompletenessCard
-      completeness={completeness}
-      organisationId={ctx.org.id}
-    />
-    <EvidencePackCard organisationId={ctx.org.id} />
-  </div>
-</section>
+          <div className="lg:col-span-2 space-y-6">
+            <ComplianceCompletenessCard
+              completeness={completeness}
+              organisationId={ctx.org.id}
+            />
+            <EvidencePackCard organisationId={ctx.org.id} />
+          </div>
+        </section>
 
-        {/* ───────── Acceptance summary ───────── */}
         <section>
           {hasAcceptedAllDocs ? (
             <div className="rounded-md border border-emerald-200 bg-emerald-50 p-4">
@@ -128,28 +131,23 @@ export default async function OrganisationDashboardPage({
           )}
         </section>
 
-        {/* ───────── Governance ───────── */}
         <section className="grid gap-8 lg:grid-cols-5">
           <div className="lg:col-span-2">
             <ResponsibilityMap />
           </div>
 
           <div className="lg:col-span-3 space-y-6">
-<LegalStatusTable
-  rows={currentDocs.map((doc) => {
-    const isAccepted = acceptedDocIds.has(doc.id)
-
-    return {
-      id: doc.id,
-      name: doc.name,
-      version: doc.version,
-      isCurrent: true, // currentDocs = authoritative current set
-      status: isAccepted ? 'accepted' : 'pending',
-    }
-  })}
-/>
-
-
+            <LegalStatusTable
+              rows={currentDocs.map((doc: CurrentDocument) => ({
+                id: doc.id,
+                name: doc.name,
+                version: doc.version,
+                isCurrent: true,
+                status: acceptedDocIds.has(doc.id)
+                  ? 'accepted'
+                  : 'pending',
+              }))}
+            />
 
             {hasRole(ctx, ['owner', 'admin']) && (
               <AcceptDocumentsCTA
@@ -160,7 +158,6 @@ export default async function OrganisationDashboardPage({
           </div>
         </section>
 
-        {/* ───────── Evidence ───────── */}
         <section className="space-y-3">
           <EvidenceLog
             organisationId={ctx.org.id}
