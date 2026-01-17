@@ -3,6 +3,7 @@
 import './globals.css'
 import type { Metadata } from 'next'
 import { TooltipProvider } from '@/components/ui/tooltip'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 
 export const metadata: Metadata = {
   title: 'Veriscopic',
@@ -20,9 +21,11 @@ export default function RootLayout({
         <TooltipProvider delayDuration={150}>
           {children}
         </TooltipProvider>
+        <SpeedInsights />
       </body>
     </html>
   )
 }
+
 
 
