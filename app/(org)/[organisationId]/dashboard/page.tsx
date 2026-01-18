@@ -1,8 +1,8 @@
  // app/(org)/[organisationId]/dashboard/page.tsx
 
-
 import { redirect } from 'next/navigation'
 import { requireMember, hasRole } from '@/lib/rbac/guards'
+import { supabaseServerRead } from '@/lib/supabase/server-read'
 
 import { DashboardHeader } from './components/dashboard-header'
 import { OrganisationOverview } from './components/organisation-overview'
@@ -12,6 +12,8 @@ import { LegalStatusTable } from './components/legal-status-table'
 import { EvidenceLog } from './components/evidence-log'
 import { AcceptDocumentsCTA } from './components/accept-documents-cta'
 import { EvidencePackCard } from './components/evidence-pack-card'
+
+import { FeatureToggle } from '@/components/compliance/feature-toggle'
 
 import {
   getCurrentPlatformDocuments,
@@ -53,10 +55,20 @@ export default async function OrganisationDashboardPage({
   const { ctx } = result
   if (!ctx.org || !ctx.user) redirect('/')
 
-  const [currentDocs, acceptanceEvents] = await Promise.all([
-    getCurrentPlatformDocuments(),
-    getOrganisationAcceptanceEvents(ctx.org.id),
-  ])
+  const supabase = await supabaseServerRead()
+
+  const [{ data: orgRow }, currentDocs, acceptanceEvents] =
+    await Promise.all([
+      supabase
+        .from('organisations')
+        .select('features')
+        .eq('id', ctx.org.id)
+        .single(),
+      getCurrentPlatformDocuments(),
+      getOrganisationAcceptanceEvents(ctx.org.id),
+    ])
+
+  const features = orgRow?.features ?? {}
 
   const acceptedDocIds = new Set<string>(
     acceptanceEvents.map((e) => e.document_id)
@@ -83,10 +95,11 @@ export default async function OrganisationDashboardPage({
       acceptedDocIds.has(d.id)
     )
 
+  const canEditFeatures = hasRole(ctx, ['owner', 'admin'])
+
   return (
     <main className="py-10">
       <div className="mx-auto max-w-4xl px-6 space-y-12">
-
         <DashboardHeader
           organisationName={ctx.org.name}
           userEmail={ctx.user.email ?? undefined}
@@ -104,7 +117,15 @@ export default async function OrganisationDashboardPage({
               completeness={completeness}
               organisationId={ctx.org.id}
             />
+
             <EvidencePackCard organisationId={ctx.org.id} />
+
+            <FeatureToggle
+              organisationId={ctx.org.id}
+              featureKey="evidence_pack"
+              enabled={Boolean(features.evidence_pack)}
+              canEdit={canEditFeatures}
+            />
           </div>
         </section>
 
@@ -149,7 +170,7 @@ export default async function OrganisationDashboardPage({
               }))}
             />
 
-            {hasRole(ctx, ['owner', 'admin']) && (
+            {canEditFeatures && (
               <AcceptDocumentsCTA
                 organisationId={ctx.org.id}
                 acceptedOn={acceptedOn}
@@ -166,7 +187,6 @@ export default async function OrganisationDashboardPage({
             }))}
           />
         </section>
-
       </div>
     </main>
   )
