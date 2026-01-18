@@ -1,7 +1,6 @@
 // lib/legal/sign-evidence.ts
-// lib/legal/sign-evidence.ts
 
-import crypto from 'crypto'
+import { sha256HexFromJson } from './evidence-pack-canonical'
 
 export interface EvidenceSignature {
   algorithm: 'SHA-256'
@@ -14,13 +13,8 @@ export interface EvidenceSignature {
 export function signEvidencePack<T extends object>(
   evidencePack: T
 ): T & { signature: EvidenceSignature } {
-  // Canonical JSON (stable, deterministic)
-  const canonicalJson = JSON.stringify(evidencePack)
-
-  const checksum = crypto
-    .createHash('sha256')
-    .update(canonicalJson)
-    .digest('hex')
+  // IMPORTANT: hash canonical JSON, not raw stringify
+  const { checksum } = sha256HexFromJson(evidencePack as any)
 
   return {
     ...evidencePack,
@@ -30,8 +24,7 @@ export function signEvidencePack<T extends object>(
       signed_at: new Date().toISOString(),
       signed_by: 'veriscopic',
       note:
-        'Checksum generated over full JSON payload to ensure integrity.',
+        'Checksum generated over canonical JSON payload to ensure integrity.',
     },
   }
 }
-
