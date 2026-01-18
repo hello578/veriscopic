@@ -1,10 +1,75 @@
+
 // app/evidence/page.tsx
+
+
+import type { Metadata } from "next"
+import Script from "next/script"
+
+export const metadata: Metadata = {
+  title: "AI Governance Evidence Packs for Enterprise Procurement",
+  description:
+    "Request immutable, audit-ready AI governance evidence packs suitable for enterprise procurement, investors, insurers, and regulatory scrutiny across the UK and EU.",
+  robots: {
+    index: true,
+    follow: true,
+  },
+}
 
 export default function EvidenceLandingPage() {
   return (
     <main className="min-h-screen bg-white text-slate-900">
 
-      {/* TOP NAV HINT */}
+      {/* FAQ SCHEMA */}
+      <Script
+        id="faq-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: [
+              {
+                "@type": "Question",
+                name: "What is an AI Governance Evidence Pack?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text:
+                    "An AI Governance Evidence Pack is a structured, audit-ready record demonstrating how AI systems are governed, including locked documents, immutable acceptance records, and externally shareable evidence suitable for procurement, insurers, investors, and regulators.",
+                },
+              },
+              {
+                "@type": "Question",
+                name: "Is this suitable for EU AI Act or enterprise procurement reviews?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text:
+                    "Yes. Evidence Packs are designed to support governance expectations under emerging AI regulation such as the EU AI Act, as well as enterprise procurement, insurance review, and external audit.",
+                },
+              },
+              {
+                "@type": "Question",
+                name: "How quickly can an Evidence Pack be delivered?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text:
+                    "Most Evidence Packs are delivered within 72 hours once scope and documents are confirmed.",
+                },
+              },
+              {
+                "@type": "Question",
+                name: "Who typically requests Evidence Packs?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text:
+                    "Evidence Packs are commonly requested by enterprise customers, procurement teams, insurers, investors, auditors, and regulators assessing AI governance maturity.",
+                },
+              },
+            ],
+          }),
+        }}
+      />
+
+      {/* TOP NAV */}
       <div className="mx-auto max-w-5xl px-6 pt-6">
         <a
           href="/"
@@ -41,10 +106,10 @@ export default function EvidenceLandingPage() {
           </a>
 
           <a
-            href="#deliverables"
+            href="#included"
             className="inline-flex items-center justify-center rounded-md border border-slate-300 px-6 py-3 text-base font-medium text-slate-700 hover:bg-slate-50"
           >
-            What you receive in 72 hours
+            What’s included
           </a>
         </div>
       </section>
@@ -80,77 +145,59 @@ export default function EvidenceLandingPage() {
           acceptance is captured immutably, and outputs are structured to
           withstand external review.
         </p>
-
-        <ul className="grid gap-6 sm:grid-cols-2">
-          {[
-            "Hash-locked legal and governance documents (Terms, Privacy, AI disclosures)",
-            "Timestamped acceptance records (who accepted, when, and under which version)",
-            "Audit-ready evidence pack (PDF + machine-readable export)",
-            "Clear narrative suitable for investors, enterprise buyers, insurers, and regulators",
-          ].map((item) => (
-            <li
-              key={item}
-              className="rounded-lg border border-slate-200 bg-white p-6 text-slate-700"
-            >
-              {item}
-            </li>
-          ))}
-        </ul>
       </section>
 
-      {/* DELIVERABLES */}
+      {/* INCLUDED */}
       <section
-        id="deliverables"
-        className="border-t border-slate-200 bg-slate-50"
+        id="included"
+        className="border-t border-slate-200 bg-white"
       >
         <div className="mx-auto max-w-5xl px-6 py-24">
           <h2 className="mb-6 text-2xl font-semibold">
-            What you receive in 72 hours
+            What’s included in an Evidence Pack
           </h2>
 
           <p className="mb-10 max-w-3xl text-slate-600">
-            Each Evidence Pack is delivered on a fixed, rapid timeline to support
-            live deals, procurement cycles, or regulatory requests.
+            Each Evidence Pack is designed to withstand scrutiny from enterprise
+            procurement teams, insurers, investors, and regulators.
           </p>
 
-          <ol className="grid gap-6 sm:grid-cols-2">
+          <ul className="grid gap-6 sm:grid-cols-2">
             {[
-              "Locked, versioned copies of current platform legal and AI governance documents",
-              "Immutable acceptance records linked to document hashes and timestamps",
-              "Externally shareable PDF evidence pack with structured explanations",
+              "Hash-locked copies of current legal, privacy, and AI governance documents",
+              "Immutable acceptance records showing who accepted what, when, and under which version",
+              "Externally shareable PDF evidence pack with clear governance narrative",
               "Machine-readable export suitable for audit, legal review, or insurer assessment",
-              "Guidance on how to present the evidence to third parties",
-            ].map((item, idx) => (
+              "Guidance on how to present the evidence during procurement or due diligence",
+            ].map((item) => (
               <li
                 key={item}
-                className="rounded-lg border border-slate-200 bg-white p-6 text-slate-700"
+                className="rounded-lg border border-slate-200 bg-slate-50 p-6 text-slate-700"
               >
-                <span className="mb-2 block text-sm font-semibold text-slate-500">
-                  Deliverable {idx + 1}
-                </span>
                 {item}
               </li>
             ))}
-          </ol>
+          </ul>
         </div>
       </section>
 
-      {/* WHO IT'S FOR */}
-      <section className="mx-auto max-w-5xl px-6 py-24">
-        <h2 className="mb-6 text-2xl font-semibold">
-          Who Evidence Packs are for
-        </h2>
+      {/* DELIVERY */}
+      <section className="border-t border-slate-200 bg-slate-50">
+        <div className="mx-auto max-w-5xl px-6 py-24">
+          <h2 className="mb-6 text-2xl font-semibold">
+            Delivered within 72 hours
+          </h2>
 
-        <p className="max-w-3xl text-slate-600">
-          Evidence Packs are designed for organisations that deploy AI and are
-          required to demonstrate governance maturity to external parties —
-          including enterprise customers, investors, insurers, auditors, and
-          regulators.
-        </p>
+          <p className="max-w-3xl text-slate-600">
+            Evidence Packs are delivered on a fixed, rapid timeline to support
+            live procurement processes, funding rounds, insurance underwriting,
+            or regulatory enquiries.
+          </p>
+        </div>
       </section>
 
       {/* PRICING */}
-      <section className="border-t border-slate-200 bg-slate-50">
+      <section className="border-t border-slate-200 bg-white">
         <div className="mx-auto max-w-5xl px-6 py-24">
           <h2 className="mb-6 text-2xl font-semibold">
             Pricing
@@ -158,9 +205,55 @@ export default function EvidenceLandingPage() {
 
           <p className="max-w-3xl text-slate-600">
             Evidence Packs start from <strong>£750</strong>. Most engagements fall
-            between £1,500 and £2,500 depending on scope and complexity.
-            Capacity is intentionally limited to ensure quality and defensibility.
+            between <strong>£1,500 and £2,500</strong>, depending on scope,
+            document complexity, and governance depth required.
           </p>
+
+          <p className="mt-4 max-w-3xl text-slate-600">
+            Pricing reflects the creation of externally defensible evidence —
+            not generic documentation. Capacity is intentionally limited to
+            maintain quality.
+          </p>
+        </div>
+      </section>
+
+      {/* FAQ CONTENT */}
+      <section className="border-t border-slate-200 bg-white">
+        <div className="mx-auto max-w-5xl px-6 py-24 space-y-10">
+          <h2 className="text-2xl font-semibold">
+            Frequently asked questions
+          </h2>
+
+          <div>
+            <h3 className="mb-2 font-semibold">
+              What is an AI Governance Evidence Pack?
+            </h3>
+            <p className="text-slate-600">
+              A structured, audit-ready record showing how AI systems are
+              governed, including locked documents, immutable acceptance
+              records, and a narrative suitable for enterprise review.
+            </p>
+          </div>
+
+          <div>
+            <h3 className="mb-2 font-semibold">
+              Is this suitable for EU AI Act reviews?
+            </h3>
+            <p className="text-slate-600">
+              Yes. Evidence Packs are designed to support governance expectations
+              under emerging AI regulation and enterprise procurement standards.
+            </p>
+          </div>
+
+          <div>
+            <h3 className="mb-2 font-semibold">
+              How fast is delivery?
+            </h3>
+            <p className="text-slate-600">
+              Most Evidence Packs are delivered within 72 hours once scope is
+              confirmed.
+            </p>
+          </div>
         </div>
       </section>
 
