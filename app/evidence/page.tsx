@@ -4,11 +4,12 @@
 
 import type { Metadata } from "next"
 import Script from "next/script"
+import Link from "next/link"
 
 export const metadata: Metadata = {
   title: "AI Governance Evidence Packs for Enterprise Procurement",
   description:
-    "Request immutable, audit-ready AI governance evidence packs suitable for enterprise procurement, investors, insurers, and regulatory scrutiny across the UK and EU.",
+    "Request immutable, audit-ready AI governance evidence packs suitable for enterprise procurement, insurers, investors, and regulatory scrutiny across the UK and EU.",
   robots: {
     index: true,
     follow: true,
@@ -34,7 +35,7 @@ export default function EvidenceLandingPage() {
                 acceptedAnswer: {
                   "@type": "Answer",
                   text:
-                    "An AI Governance Evidence Pack is a structured, audit-ready record demonstrating how AI systems are governed, including locked documents, immutable acceptance records, and externally shareable evidence suitable for procurement, insurers, investors, and regulators.",
+                    "An AI Governance Evidence Pack is an audit-ready, externally shareable record demonstrating how AI systems are governed, including locked documents, immutable acceptance records, and structured evidence suitable for enterprise procurement, insurers, investors, and regulators.",
                 },
               },
               {
@@ -43,7 +44,7 @@ export default function EvidenceLandingPage() {
                 acceptedAnswer: {
                   "@type": "Answer",
                   text:
-                    "Yes. Evidence Packs are designed to support governance expectations under emerging AI regulation such as the EU AI Act, as well as enterprise procurement, insurance review, and external audit.",
+                    "Yes. Evidence Packs are designed to support governance, transparency, and documentation expectations under emerging AI regulation such as the EU AI Act, as well as enterprise procurement and insurance due diligence.",
                 },
               },
               {
@@ -52,7 +53,7 @@ export default function EvidenceLandingPage() {
                 acceptedAnswer: {
                   "@type": "Answer",
                   text:
-                    "Most Evidence Packs are delivered within 72 hours once scope and documents are confirmed.",
+                    "Most Evidence Packs are delivered within 72 hours once scope and documentation are confirmed.",
                 },
               },
               {
@@ -71,12 +72,9 @@ export default function EvidenceLandingPage() {
 
       {/* TOP NAV */}
       <div className="mx-auto max-w-5xl px-6 pt-6">
-        <a
-          href="/"
-          className="text-sm text-slate-500 hover:text-slate-700"
-        >
+        <Link href="/" className="text-sm text-slate-500 hover:text-slate-700">
           ← Back to Veriscopic
-        </a>
+        </Link>
       </div>
 
       {/* HERO */}
@@ -123,8 +121,8 @@ export default function EvidenceLandingPage() {
 
           <p className="max-w-3xl text-slate-600">
             Organisations are increasingly required to demonstrate how AI risks
-            are disclosed, which terms apply, who accepted them, and whether
-            records are immutable and auditable.
+            are governed, disclosed, and accepted — including which terms apply,
+            who accepted them, and whether records are immutable and auditable.
             <br /><br />
             PDFs can be edited. Screenshots lack integrity. Policies without
             acceptance evidence routinely fail procurement, insurance, and
@@ -133,65 +131,74 @@ export default function EvidenceLandingPage() {
         </div>
       </section>
 
-      {/* SOLUTION */}
-      <section className="mx-auto max-w-5xl px-6 py-24">
+      {/* INCLUDED */}
+      <section id="included" className="mx-auto max-w-5xl px-6 py-24">
         <h2 className="mb-6 text-2xl font-semibold">
-          The Veriscopic Evidence Pack
+          What’s included in an Evidence Pack
         </h2>
 
         <p className="mb-10 max-w-3xl text-slate-600">
-          Veriscopic converts your AI governance posture into verifiable,
-          tamper-resistant evidence. Documents are cryptographically locked,
-          acceptance is captured immutably, and outputs are structured to
-          withstand external review.
+          Each Evidence Pack is structured to withstand scrutiny from enterprise
+          procurement teams, insurers, investors, auditors, and regulators.
         </p>
+
+        <ul className="grid gap-6 sm:grid-cols-2">
+          {[
+            "Hash-locked legal, privacy, and AI governance documents",
+            "Immutable acceptance records with timestamps and document versions",
+            "Externally shareable PDF evidence pack (redacted if required)",
+            "Machine-readable export suitable for audit and legal review",
+            "Guidance on presenting evidence during procurement or due diligence",
+          ].map((item) => (
+            <li
+              key={item}
+              className="rounded-lg border border-slate-200 bg-slate-50 p-6 text-slate-700"
+            >
+              {item}
+            </li>
+          ))}
+        </ul>
       </section>
 
-      {/* INCLUDED */}
-      <section
-        id="included"
-        className="border-t border-slate-200 bg-white"
-      >
+      {/* SAMPLE PDF */}
+      <section className="border-t border-slate-200 bg-white">
         <div className="mx-auto max-w-5xl px-6 py-24">
           <h2 className="mb-6 text-2xl font-semibold">
-            What’s included in an Evidence Pack
+            View a redacted sample Evidence Pack
           </h2>
 
-          <p className="mb-10 max-w-3xl text-slate-600">
-            Each Evidence Pack is designed to withstand scrutiny from enterprise
-            procurement teams, insurers, investors, and regulators.
+          <p className="mb-6 max-w-3xl text-slate-600">
+            Review a redacted example of an AI Governance Evidence Pack to
+            understand the structure, depth, and format provided to third
+            parties.
           </p>
 
-          <ul className="grid gap-6 sm:grid-cols-2">
-            {[
-              "Hash-locked copies of current legal, privacy, and AI governance documents",
-              "Immutable acceptance records showing who accepted what, when, and under which version",
-              "Externally shareable PDF evidence pack with clear governance narrative",
-              "Machine-readable export suitable for audit, legal review, or insurer assessment",
-              "Guidance on how to present the evidence during procurement or due diligence",
-            ].map((item) => (
-              <li
-                key={item}
-                className="rounded-lg border border-slate-200 bg-slate-50 p-6 text-slate-700"
-              >
-                {item}
-              </li>
-            ))}
-          </ul>
+          <a
+            href="/sample/veriscopic-evidence-pack-sample.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center rounded-md border border-slate-300 px-6 py-3 text-base font-medium text-slate-700 hover:bg-slate-50"
+          >
+            View sample PDF
+          </a>
         </div>
       </section>
 
-      {/* DELIVERY */}
+      {/* EU AI ACT */}
       <section className="border-t border-slate-200 bg-slate-50">
         <div className="mx-auto max-w-5xl px-6 py-24">
           <h2 className="mb-6 text-2xl font-semibold">
-            Delivered within 72 hours
+            Supporting EU AI Act governance
           </h2>
 
           <p className="max-w-3xl text-slate-600">
-            Evidence Packs are delivered on a fixed, rapid timeline to support
-            live procurement processes, funding rounds, insurance underwriting,
-            or regulatory enquiries.
+            Evidence Packs are designed to support transparency, documentation,
+            and governance expectations emerging under the EU AI Act.
+            <br /><br />
+            While Veriscopic does not provide legal advice or certify compliance,
+            Evidence Packs help organisations demonstrate responsible governance,
+            documented controls, and accountability when responding to external
+            reviews.
           </p>
         </div>
       </section>
@@ -208,60 +215,11 @@ export default function EvidenceLandingPage() {
             between <strong>£1,500 and £2,500</strong>, depending on scope,
             document complexity, and governance depth required.
           </p>
-
-          <p className="mt-4 max-w-3xl text-slate-600">
-            Pricing reflects the creation of externally defensible evidence —
-            not generic documentation. Capacity is intentionally limited to
-            maintain quality.
-          </p>
-        </div>
-      </section>
-
-      {/* FAQ CONTENT */}
-      <section className="border-t border-slate-200 bg-white">
-        <div className="mx-auto max-w-5xl px-6 py-24 space-y-10">
-          <h2 className="text-2xl font-semibold">
-            Frequently asked questions
-          </h2>
-
-          <div>
-            <h3 className="mb-2 font-semibold">
-              What is an AI Governance Evidence Pack?
-            </h3>
-            <p className="text-slate-600">
-              A structured, audit-ready record showing how AI systems are
-              governed, including locked documents, immutable acceptance
-              records, and a narrative suitable for enterprise review.
-            </p>
-          </div>
-
-          <div>
-            <h3 className="mb-2 font-semibold">
-              Is this suitable for EU AI Act reviews?
-            </h3>
-            <p className="text-slate-600">
-              Yes. Evidence Packs are designed to support governance expectations
-              under emerging AI regulation and enterprise procurement standards.
-            </p>
-          </div>
-
-          <div>
-            <h3 className="mb-2 font-semibold">
-              How fast is delivery?
-            </h3>
-            <p className="text-slate-600">
-              Most Evidence Packs are delivered within 72 hours once scope is
-              confirmed.
-            </p>
-          </div>
         </div>
       </section>
 
       {/* CTA */}
-      <section
-        id="contact"
-        className="border-t border-slate-200 bg-slate-900"
-      >
+      <section id="contact" className="border-t border-slate-200 bg-slate-900">
         <div className="mx-auto max-w-5xl px-6 py-20 text-white">
           <h2 className="mb-4 text-3xl font-semibold">
             Request an AI Governance Evidence Pack
@@ -284,14 +242,8 @@ export default function EvidenceLandingPage() {
       {/* TRUST FOOTER */}
       <footer className="border-t border-slate-200 bg-white">
         <div className="mx-auto max-w-5xl px-6 py-10 text-sm text-slate-500">
-          <p className="mb-2">
-            Built for organisations operating across the UK and EU.
-          </p>
-          <p>
-            Designed to support governance expectations under emerging AI
-            regulation, enterprise procurement standards, and external audit
-            requirements.
-          </p>
+          Built for organisations operating across the UK and EU · Audit-evidence
+          first · External-facing by design
         </div>
       </footer>
     </main>

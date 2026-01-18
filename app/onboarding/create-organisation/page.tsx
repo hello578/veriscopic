@@ -1,6 +1,8 @@
-import { redirect } from 'next/navigation'
-import { supabaseServerRead } from '@/lib/supabase/server-read'
-import CreateOrganisationForm from './create-organisation-form'
+// app/onboarding/create-organisation/page.tsx
+
+import { redirect } from "next/navigation"
+import { supabaseServerRead } from "@/lib/supabase/server-read"
+import CreateOrganisationForm from "./create-organisation-form"
 
 export default async function CreateOrganisationPage() {
   const supabase = await supabaseServerRead()
@@ -9,20 +11,18 @@ export default async function CreateOrganisationPage() {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) redirect('/auth/login')
+  if (!user) redirect("/auth/login")
 
   const { data: membership } = await supabase
-    .from('organisation_members')
-    .select('organisation_id')
-    .eq('user_id', user.id)
-    .limit(1)
+    .from("organisation_members")
+    .select("organisation_id")
+    .eq("user_id", user.id)
+    .eq("role_key", "owner")
+    .maybeSingle()
 
-  const orgId = membership?.[0]?.organisation_id
-
-  // 🔴 HARD EXIT — nothing after this runs
- // if (orgId) {
-  //  redirect(`/${orgId}/dashboard`)
- // }
+  if (membership?.organisation_id) {
+    redirect(`/${membership.organisation_id}/dashboard`)
+  }
 
   return (
     <main className="p-10 max-w-xl space-y-6">

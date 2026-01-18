@@ -7,17 +7,28 @@ import Link from "next/link"
 import Image from "next/image"
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
+import { useSession } from "@/lib/auth/use-session"
+import { supabaseBrowser } from "@/lib/supabase/client"
+import { useRouter } from "next/navigation"
 
 const HEADER_HEIGHT = 80
 
 export function SiteHeader() {
   const [scrolled, setScrolled] = useState(false)
+  const { session, loading } = useSession()
+  const supabase = supabaseBrowser()
+  const router = useRouter()
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8)
     window.addEventListener("scroll", onScroll, { passive: true })
     return () => window.removeEventListener("scroll", onScroll)
   }, [])
+
+  async function handleSignOut() {
+    await supabase.auth.signOut()
+    router.push("/") // explicit reset
+  }
 
   return (
     <header
@@ -44,10 +55,34 @@ export function SiteHeader() {
           </span>
         </Link>
 
-        {/* Right-side CTA */}
-        <Button asChild size="lg">
-          <Link href="/auth/login">Sign in</Link>
-        </Button>
+        {/* Right-side actions */}
+        <div className="flex items-center gap-3">
+          {/* Prevent hydration flicker */}
+          {loading && null}
+
+          {!loading && !session && (
+            <Button asChild size="lg">
+              <Link href="/auth/login">Sign in</Link>
+            </Button>
+          )}
+
+          {!loading && session && (
+            <>
+              {/* 🚀 ALWAYS route via /dashboard entry */}
+              <Button asChild variant="outline" size="lg">
+                <Link href="/dashboard">Dashboard</Link>
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="lg"
+                onClick={handleSignOut}
+              >
+                Sign out
+              </Button>
+            </>
+          )}
+        </div>
       </div>
     </header>
   )
