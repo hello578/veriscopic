@@ -1,16 +1,25 @@
-
-// lib/legal/export-evidence-pdf.ts
-
 import 'server-only'
 
 import path from 'path'
 import PDFDocument from 'pdfkit'
 import type { EvidencePack } from './export-evidence'
 
-/**
- * Render an Evidence Pack PDF from the canonical EvidencePack.
- * The PDF is a VIEW only. The EvidencePack JSON remains the source of truth.
- */
+// -----------------------------------------------------------------------------
+// Fonts
+// -----------------------------------------------------------------------------
+
+const FONT_REGULAR = path.join(
+  process.cwd(),
+  'public/fonts/Inter_18pt-Regular.ttf'
+)
+
+const FONT_SEMIBOLD = path.join(
+  process.cwd(),
+  'public/fonts/Inter_18pt-SemiBold.ttf'
+)
+
+// -----------------------------------------------------------------------------
+
 export async function renderEvidencePackPdf(
   pack: EvidencePack
 ): Promise<Buffer> {
@@ -31,41 +40,17 @@ export async function renderEvidencePackPdf(
     doc.on('error', reject)
   })
 
-  // ---------------------------------------------------------------------------
-  // Canonical values (NO legacy fallbacks)
-  // ---------------------------------------------------------------------------
-
-  const organisationId = pack.organisation.id
-  const organisationName = pack.organisation.name
-  const generatedAt = pack.generated_at
-
-  const checksumAlgorithm = pack.integrity.algorithm
-  const checksumValue = pack.integrity.canonical_json_sha256
-
-  const packVersion = pack.evidence_pack_version
-
-  // ---------------------------------------------------------------------------
-  // Assets
-  // ---------------------------------------------------------------------------
-
-  const brandMarkPath = path.join(
-    process.cwd(),
-    'public',
-    'assets',
-    'brand',
-    'veriscopic-mark-mono.png'
-  )
+  // Fonts (MUST be first)
+  doc.registerFont('Inter', FONT_REGULAR)
+  doc.registerFont('InterSemiBold', FONT_SEMIBOLD)
+  doc.font('Inter')
 
   // ---------------------------------------------------------------------------
   // Helpers
   // ---------------------------------------------------------------------------
 
-  const toUtcDate = (iso?: string) => {
-    if (!iso) return 'Unknown'
-    const d = new Date(iso)
-    if (Number.isNaN(d.getTime())) return iso
-    return `${d.toISOString().replace('T', ' ').replace('Z', ' UTC')}`
-  }
+  const toUtcDate = (iso?: string) =>
+    iso ? new Date(iso).toISOString().replace('T', ' ').replace('Z', ' UTC') : '—'
 
   const ellipsize = (s: string, n: number) =>
     s.length > n ? `${s.slice(0, n - 1)}…` : s
@@ -76,100 +61,58 @@ export async function renderEvidencePackPdf(
       .save()
       .moveTo(doc.page.margins.left, y)
       .lineTo(doc.page.width - doc.page.margins.right, y)
-      .lineWidth(1)
       .strokeColor('#e5e7eb')
       .stroke()
       .restore()
-    doc.moveDown(1.1)
+    doc.moveDown(1)
   }
 
   const sectionTitle = (title: string) => {
-    doc
-      .fontSize(12)
-      .fillColor('#111827')
-      .font('Helvetica-Bold')
-      .text(title)
+    doc.font('InterSemiBold').fontSize(12).fillColor('#111827').text(title)
     doc.moveDown(0.5)
   }
 
   const kvRow = (k: string, v: string) => {
-    doc
-      .fontSize(10)
-      .fillColor('#111827')
-      .font('Helvetica-Bold')
-      .text(k, { continued: true })
-      .font('Helvetica')
-      .text(`  ${v}`)
+    doc.font('InterSemiBold').fontSize(10).text(k, { continued: true })
+    doc.font('Inter').text(`  ${v}`)
   }
 
   const footer = () => {
-    const page = doc.page
-    const y = page.height - page.margins.bottom + 18
+    const y = doc.page.height - doc.page.margins.bottom + 18
     doc.save()
-    doc.fontSize(8).fillColor('#6b7280').font('Helvetica')
+    doc.font('Inter').fontSize(8).fillColor('#6b7280')
     doc.text(
-      `Evidence Pack Hash: ${ellipsize(checksumValue, 56)}`,
-      page.margins.left,
-      y,
-      { width: page.width - page.margins.left - page.margins.right }
+      `Evidence Pack Hash: ${ellipsize(
+        pack.integrity.canonical_json_sha256,
+        56
+      )}`,
+      doc.page.margins.left,
+      y
     )
     doc.text(
-      `Generated: ${toUtcDate(generatedAt)} · Veriscopic`,
-      page.margins.left,
-      y + 10,
-      { width: page.width - page.margins.left - page.margins.right }
+      `Generated: ${toUtcDate(pack.generated_at)} · Veriscopic`,
+      doc.page.margins.left,
+      y + 10
     )
     doc.restore()
   }
-
-  doc.on('pageAdded', footer)
 
   // ---------------------------------------------------------------------------
   // COVER
   // ---------------------------------------------------------------------------
 
-  try {
-    doc.image(brandMarkPath, doc.page.margins.left, 44, { width: 24 })
-  } catch {
-    // optional asset
-  }
-
-  doc
-    .fontSize(20)
-    .fillColor('#111827')
-    .font('Helvetica-Bold')
-    .text('AI Governance Evidence Pack', doc.page.margins.left, 80)
-
-  doc.moveDown(0.4)
-  doc
-    .fontSize(10)
-    .fillColor('#374151')
-    .font('Helvetica')
-    .text(
-      'A cryptographically bound export of governance evidence. This document does not constitute legal advice or a compliance opinion.'
-    )
-
-  doc.moveDown(1.2)
-  kvRow('Organisation', organisationName)
-  kvRow('Organisation ID', organisationId)
-  kvRow('Generated at (UTC)', toUtcDate(generatedAt))
-  kvRow('Evidence Pack Version', packVersion)
-
+  doc.font('InterSemiBold').fontSize(20).text('AI Governance Evidence Pack')
   doc.moveDown(1)
+
+  kvRow('Organisation', pack.organisation.name)
+  kvRow('Organisation ID', pack.organisation.id)
+  kvRow('Generated', toUtcDate(pack.generated_at))
+  kvRow('Version', pack.evidence_pack_version)
+
   hr()
-
   sectionTitle('Integrity')
-  kvRow('Algorithm', checksumAlgorithm)
-  kvRow('SHA-256', checksumValue)
-
-  doc.moveDown(1)
-  doc
-    .fontSize(9)
-    .fillColor('#374151')
-    .font('Helvetica')
-    .text(
-      'Any alteration to the underlying evidence data invalidates the checksum above.'
-    )
+  kvRow('Algorithm', pack.integrity.algorithm)
+  kvRow('SHA-256', pack.integrity.canonical_json_sha256)
 
   footer()
 
@@ -180,31 +123,18 @@ export async function renderEvidencePackPdf(
   doc.addPage()
   sectionTitle('Governance Snapshot')
 
-  const gs = pack.governance_snapshot
+  kvRow('Ownership model', pack.governance_snapshot.ownership_model)
+  kvRow('Audit logging', pack.governance_snapshot.audit_logging)
 
-  kvRow('Ownership model', gs.ownership_model)
-  kvRow('Audit logging', gs.audit_logging)
-
-  doc.moveDown(1)
   hr()
+  sectionTitle('Organisation Events')
 
-  sectionTitle('Recorded Organisation Events')
-
-  if (!gs.organisation_events.length) {
+  pack.governance_snapshot.organisation_events.forEach((e) =>
     doc
+      .font('Inter')
       .fontSize(10)
-      .fillColor('#374151')
-      .font('Helvetica')
-      .text('No organisation lifecycle events recorded.')
-  } else {
-    gs.organisation_events.forEach((e) => {
-      doc
-        .fontSize(10)
-        .fillColor('#111827')
-        .font('Helvetica')
-        .text(`${e.event_type} · ${toUtcDate(e.occurred_at)}`)
-    })
-  }
+      .text(`${e.event_type} · ${toUtcDate(e.occurred_at)}`)
+  )
 
   footer()
 
@@ -215,35 +145,16 @@ export async function renderEvidencePackPdf(
   doc.addPage()
   sectionTitle('Legal Documents Accepted')
 
-  const acceptances = pack.legal_acceptance
-
-  if (!acceptances.length) {
-    doc
-      .fontSize(10)
-      .fillColor('#374151')
-      .font('Helvetica')
-      .text('No legal acceptance evidence recorded at time of export.')
-  } else {
-    acceptances.forEach((a) => {
-      doc
-        .fontSize(10)
-        .fillColor('#111827')
-        .font('Helvetica-Bold')
-        .text(a.document_name)
-
-      doc
-        .fontSize(9)
-        .font('Helvetica')
-        .text(
-          `Version ${a.version} · ${toUtcDate(a.accepted_at)} · ${ellipsize(
-            a.content_hash,
-            48
-          )}`
-        )
-
-      doc.moveDown(0.4)
-    })
-  }
+  pack.legal_acceptance.forEach((a) => {
+    doc.font('InterSemiBold').text(a.document_name)
+    doc.font('Inter').fontSize(9).text(
+      `Version ${a.version} · ${toUtcDate(a.accepted_at)} · ${ellipsize(
+        a.content_hash,
+        48
+      )}`
+    )
+    doc.moveDown(0.5)
+  })
 
   footer()
 
@@ -254,34 +165,17 @@ export async function renderEvidencePackPdf(
   doc.addPage()
   sectionTitle('AI Systems Registry')
 
-  if (!pack.ai_systems.length) {
-    doc
-      .fontSize(10)
-      .fillColor('#374151')
-      .font('Helvetica')
-      .text('No AI systems recorded.')
-  } else {
-    pack.ai_systems.forEach((s, i) => {
-      doc
-        .fontSize(11)
-        .fillColor('#111827')
-        .font('Helvetica-Bold')
-        .text(`${i + 1}. ${s.name}`)
-
-      doc.fontSize(9).font('Helvetica')
-      kvRow('Purpose', s.purpose)
-      kvRow('Lifecycle status', s.lifecycle_status)
-      kvRow(
-        'Data categories',
-        s.data_categories.length
-          ? s.data_categories.join(', ')
-          : '—'
-      )
-
-      doc.moveDown(0.6)
-      hr()
-    })
-  }
+  pack.ai_systems.forEach((s, i) => {
+    doc.font('InterSemiBold').text(`${i + 1}. ${s.name}`)
+    doc.font('Inter').fontSize(9)
+    kvRow('Purpose', s.purpose)
+    kvRow('Lifecycle', s.lifecycle_status)
+    kvRow(
+      'Data categories',
+      s.data_categories.length ? s.data_categories.join(', ') : '—'
+    )
+    hr()
+  })
 
   footer()
 
@@ -290,39 +184,19 @@ export async function renderEvidencePackPdf(
   // ---------------------------------------------------------------------------
 
   doc.addPage()
-  sectionTitle('AI Act Mapping (Declarative)')
+  sectionTitle('AI Act Mapping')
 
-  if (!pack.ai_act_mapping.length) {
-    doc
-      .fontSize(10)
-      .fillColor('#374151')
-      .font('Helvetica')
-      .text('No AI Act mappings included in this export.')
-  } else {
-    pack.ai_act_mapping.forEach((m) => {
-      doc
-        .fontSize(10)
-        .fillColor('#111827')
-        .font('Helvetica-Bold')
-        .text(m.article)
-
-      doc
-        .fontSize(9)
-        .font('Helvetica')
-        .text(`Expectation: ${m.expectation}`)
-        .text(`Evidence refs: ${m.evidence_refs.join(', ')}`)
-
-      doc.moveDown(0.6)
-      hr()
-    })
-  }
+  pack.ai_act_mapping.forEach((m) => {
+    doc.font('InterSemiBold').text(m.article)
+    doc.font('Inter').fontSize(9)
+    doc.text(m.expectation)
+    doc.text(`Evidence: ${m.evidence_refs.join(', ')}`)
+    hr()
+  })
 
   footer()
 
-  // ---------------------------------------------------------------------------
-  // FINALISE
-  // ---------------------------------------------------------------------------
-
+  // Finalise
   doc.end()
   return done
 }
