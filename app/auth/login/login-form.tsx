@@ -47,7 +47,7 @@ export default function LoginForm() {
       return
     }
 
-   router.push("/dashboard")
+   router.refresh()
 
 
   }

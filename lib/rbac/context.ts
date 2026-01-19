@@ -1,3 +1,5 @@
+// lib/rbac/context.ts
+
 import { supabaseServerRead } from '@/lib/supabase/server-read'
 import type { Role } from './types'
 

@@ -1,6 +1,29 @@
 // lib/legal/render-document-pdf.ts
+// lib/legal/render-document-pdf.ts
+import 'server-only'
 
+import path from 'path'
 import PDFDocument from 'pdfkit'
+
+// -----------------------------------------------------------------------------
+// Fonts
+// -----------------------------------------------------------------------------
+
+const FONT_REGULAR = path.join(
+  process.cwd(),
+  'public',
+  'fonts',
+  'Inter_18pt-Regular.ttf'
+)
+
+const FONT_SEMIBOLD = path.join(
+  process.cwd(),
+  'public',
+  'fonts',
+  'Inter_18pt-SemiBold.ttf'
+)
+
+// -----------------------------------------------------------------------------
 
 export async function renderSimpleDocumentPdf({
   title,
@@ -14,20 +37,19 @@ export async function renderSimpleDocumentPdf({
   publishedAt?: string | null
 }): Promise<Buffer> {
   const doc = new PDFDocument({ margin: 50 })
+
+  // 🔒 Register fonts immediately
+  doc.registerFont('Inter', FONT_REGULAR)
+  doc.registerFont('InterSemiBold', FONT_SEMIBOLD)
+  doc.font('Inter')
+
   const chunks: Buffer[] = []
+  doc.on('data', (chunk: Buffer) => chunks.push(chunk))
 
-  doc.on('data', (chunk: Buffer) => {
-    chunks.push(chunk)
-  })
-
-  doc.on('end', () => {})
-
-  doc.fontSize(18).text(title)
+  doc.font('InterSemiBold').fontSize(18).text(title)
   doc.moveDown(0.5)
 
-  doc
-    .fontSize(10)
-    .fillColor('#555')
+  doc.font('Inter').fontSize(10).fillColor('#555')
     .text(
       `Version ${version}${
         publishedAt
@@ -40,7 +62,6 @@ export async function renderSimpleDocumentPdf({
   doc.fillColor('#000').fontSize(11).text(content)
 
   doc.end()
-
   return Buffer.concat(chunks)
 }
 

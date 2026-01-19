@@ -1,5 +1,6 @@
 // lib/legal/export-evidence.ts
 
+import 'server-only'
 
 import { supabaseServerRead } from '@/lib/supabase/server-read'
 import { sha256HexFromJson } from './evidence-pack-canonical'
@@ -59,7 +60,9 @@ export async function exportEvidencePack(
 ): Promise<EvidencePack> {
   const supabase = await supabaseServerRead()
 
-  // --- Organisation
+  // ─────────────────────────────────────────────
+  // Organisation
+  // ─────────────────────────────────────────────
   const { data: organisation } = await supabase
     .from('organisations')
     .select('id, name')
@@ -70,24 +73,31 @@ export async function exportEvidencePack(
     throw new Error('Organisation not found')
   }
 
-  // --- Organisation events (immutable audit trail)
+  // ─────────────────────────────────────────────
+  // Organisation audit events
+  // ─────────────────────────────────────────────
   const { data: events } = await supabase
-    .from('organisation_events')
+    .from('organisation_audit_events')
     .select('event_type, occurred_at, actor_user_id')
     .eq('organisation_id', organisationId)
     .order('occurred_at', { ascending: true })
 
-  // --- Legal acceptance evidence
-  const { data: acceptanceRows, error } = await supabase
+  // ─────────────────────────────────────────────
+  // Legal acceptance evidence (explicit FK)
+  // ─────────────────────────────────────────────
+  const {
+    data: acceptanceRows,
+    error: acceptanceError,
+  } = await supabase
     .from('terms_acceptance')
     .select(
       `
-      organisation_id,
-      user_id,
+      document_id,
       accepted_at,
       content_hash,
-      document_id,
-      legal_documents (
+      user_id,
+      legal_documents:legal_documents!terms_acceptance_document_id_fkey (
+        id,
         name,
         document_type,
         version,
@@ -98,12 +108,17 @@ export async function exportEvidencePack(
     .eq('organisation_id', organisationId)
     .order('accepted_at', { ascending: true })
 
-  if (error) {
-    console.error('[exportEvidencePack] Supabase error:', error)
-    throw new Error(error.message)
+  if (acceptanceError) {
+    console.error(
+      '[exportEvidencePack] acceptance query error:',
+      acceptanceError
+    )
+    throw new Error(acceptanceError.message)
   }
 
-  // --- AI systems (declarative registry)
+  // ─────────────────────────────────────────────
+  // AI systems (declarative registry)
+  // ─────────────────────────────────────────────
   const { data: aiSystems } = await supabase
     .from('ai_systems')
     .select(
@@ -120,12 +135,17 @@ export async function exportEvidencePack(
 
   const generatedAt = new Date().toISOString()
 
+  // ─────────────────────────────────────────────
+  // Canonical pack (pre-hash)
+  // ─────────────────────────────────────────────
   const packCore = {
     evidence_pack_version: '1.0' as const,
+
     organisation: {
       id: organisation.id,
       name: organisation.name,
     },
+
     generated_at: generatedAt,
 
     governance_snapshot: {
@@ -160,7 +180,7 @@ export async function exportEvidencePack(
         : generatedAt,
     })),
 
-    // Derived, non-judgemental mappings
+    // Declarative, non-judgemental mapping
     ai_act_mapping: [
       {
         article: 'Article 4',
@@ -175,16 +195,19 @@ export async function exportEvidencePack(
       {
         article: 'Article 13',
         expectation: 'Transparency obligations',
-        evidence_refs: ['legal_acceptance.ai_disclosure'],
+        evidence_refs: ['legal_acceptance'],
       },
       {
         article: 'Article 17',
         expectation: 'Governance controls and auditability',
-        evidence_refs: ['organisation_events'],
+        evidence_refs: ['governance_snapshot.organisation_events'],
       },
     ],
   }
 
+  // ─────────────────────────────────────────────
+  // Integrity hash (canonical JSON)
+  // ─────────────────────────────────────────────
   const { checksum } = sha256HexFromJson(packCore as any)
 
   return {
@@ -195,4 +218,3 @@ export async function exportEvidencePack(
     },
   }
 }
-
