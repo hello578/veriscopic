@@ -12,6 +12,11 @@ export default function VerifyPage() {
           Upload an Evidence Pack JSON file to compute the canonical SHA-256 hash
           locally in your browser. No file content is transmitted.
         </p>
+        <p className="text-sm text-muted-foreground">
+          This tool performs independent, client-side verification. No data is uploaded
+          or transmitted to Veriscopic servers.
+        </p>
+
       </div>
 
       <VerifyUploader />

@@ -6,18 +6,26 @@
 import Link from "next/link"
 import Image from "next/image"
 import { useEffect, useState } from "react"
+import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useSession } from "@/lib/auth/use-session"
 import { supabaseBrowser } from "@/lib/supabase/client"
-import { useRouter } from "next/navigation"
 
 const HEADER_HEIGHT = 80
+
+const NAV_ITEMS = [
+  { label: "Dashboard", href: "/dashboard" },
+  { label: "Governance", href: "/ai-systems" },
+  { label: "Evidence", href: "/evidence" },
+  { label: "Verify", href: "/verify" },
+]
 
 export function SiteHeader() {
   const [scrolled, setScrolled] = useState(false)
   const { session, loading } = useSession()
   const supabase = supabaseBrowser()
   const router = useRouter()
+  const pathname = usePathname()
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8)
@@ -27,7 +35,14 @@ export function SiteHeader() {
 
   async function handleSignOut() {
     await supabase.auth.signOut()
-    router.push("/") // explicit reset
+    router.push("/")
+  }
+
+  function isActive(href: string) {
+    if (href === "/dashboard") {
+      return pathname === "/dashboard"
+    }
+    return pathname?.startsWith(href)
   }
 
   return (
@@ -55,9 +70,28 @@ export function SiteHeader() {
           </span>
         </Link>
 
+        {/* Primary navigation (authenticated only) */}
+        {!loading && session && (
+          <nav className="hidden md:flex items-center gap-6">
+            {NAV_ITEMS.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={[
+                  "text-sm font-medium transition-colors",
+                  isActive(item.href)
+                    ? "text-slate-900"
+                    : "text-slate-500 hover:text-slate-700",
+                ].join(" ")}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        )}
+
         {/* Right-side actions */}
         <div className="flex items-center gap-3">
-          {/* Prevent hydration flicker */}
           {loading && null}
 
           {!loading && !session && (
@@ -67,20 +101,9 @@ export function SiteHeader() {
           )}
 
           {!loading && session && (
-            <>
-              {/* 🚀 ALWAYS route via /dashboard entry */}
-              <Button asChild variant="outline" size="lg">
-                <Link href="/dashboard">Dashboard</Link>
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="lg"
-                onClick={handleSignOut}
-              >
-                Sign out
-              </Button>
-            </>
+            <Button variant="ghost" size="lg" onClick={handleSignOut}>
+              Sign out
+            </Button>
           )}
         </div>
       </div>

@@ -1,4 +1,5 @@
  // app/(org)/[organisationId]/dashboard/page.tsx
+// app/(org)/[organisationId]/dashboard/page.tsx
 
 import { redirect } from 'next/navigation'
 import { requireMember, hasRole } from '@/lib/rbac/guards'
@@ -85,7 +86,7 @@ export default async function OrganisationDashboardPage({
 
   const completeness = computeCompleteness({
     currentDocs,
-    hasAISystems: false,
+    hasAISystems: false, // will flip once AI systems UI is wired
     hasAccountability: true,
   })
 
@@ -99,37 +100,66 @@ export default async function OrganisationDashboardPage({
 
   return (
     <main className="py-10">
-      <div className="mx-auto max-w-4xl px-6 space-y-12">
+      <div className="mx-auto max-w-4xl px-6 space-y-14">
+
+        {/* =============================
+            HEADER (identity & context)
+        ============================== */}
         <DashboardHeader
           organisationName={ctx.org.name}
           userEmail={ctx.user.email ?? undefined}
           role={ctx.role ?? 'member'}
         />
 
-        <section className="grid gap-6 lg:grid-cols-3">
-          <OrganisationOverview
-            name={ctx.org.name}
-            memberCount={1}
+        {/* =============================
+            GOVERNANCE STATUS (PRIMARY)
+        ============================== */}
+        <section className="space-y-4">
+          <h2 className="text-sm font-semibold text-slate-900">
+            Governance status
+          </h2>
+
+          <ComplianceCompletenessCard
+            completeness={completeness}
+            organisationId={ctx.org.id}
           />
+        </section>
 
-          <div className="lg:col-span-2 space-y-6">
-            <ComplianceCompletenessCard
-              completeness={completeness}
-              organisationId={ctx.org.id}
+        {/* =============================
+            EVIDENCE OUTPUTS
+        ============================== */}
+        <section className="space-y-6">
+          <h2 className="text-sm font-semibold text-slate-900">
+            Evidence outputs
+          </h2>
+
+          <div className="grid gap-6 lg:grid-cols-3">
+            <OrganisationOverview
+              name={ctx.org.name}
+              memberCount={1}
             />
 
-            <EvidencePackCard organisationId={ctx.org.id} />
+            <div className="lg:col-span-2 space-y-6">
+              <EvidencePackCard organisationId={ctx.org.id} />
 
-            <FeatureToggle
-              organisationId={ctx.org.id}
-              featureKey="evidence_pack"
-              enabled={Boolean(features.evidence_pack)}
-              canEdit={canEditFeatures}
-            />
+              <FeatureToggle
+                organisationId={ctx.org.id}
+                featureKey="evidence_pack"
+                enabled={Boolean(features.evidence_pack)}
+                canEdit={canEditFeatures}
+              />
+            </div>
           </div>
         </section>
 
-        <section>
+        {/* =============================
+            GOVERNANCE INPUTS
+        ============================== */}
+        <section className="space-y-6">
+          <h2 className="text-sm font-semibold text-slate-900">
+            Governance inputs
+          </h2>
+
           {hasAcceptedAllDocs ? (
             <div className="rounded-md border border-emerald-200 bg-emerald-50 p-4">
               <p className="text-sm font-medium text-emerald-900">
@@ -150,36 +180,43 @@ export default async function OrganisationDashboardPage({
               </p>
             </div>
           )}
-        </section>
 
-        <section className="grid gap-8 lg:grid-cols-5">
-          <div className="lg:col-span-2">
-            <ResponsibilityMap />
-          </div>
+          <div className="grid gap-8 lg:grid-cols-5">
+            <div className="lg:col-span-2">
+              <ResponsibilityMap />
+            </div>
 
-          <div className="lg:col-span-3 space-y-6">
-            <LegalStatusTable
-              rows={currentDocs.map((doc: CurrentDocument) => ({
-                id: doc.id,
-                name: doc.name,
-                version: doc.version,
-                isCurrent: true,
-                status: acceptedDocIds.has(doc.id)
-                  ? 'accepted'
-                  : 'pending',
-              }))}
-            />
-
-            {canEditFeatures && (
-              <AcceptDocumentsCTA
-                organisationId={ctx.org.id}
-                acceptedOn={acceptedOn}
+            <div className="lg:col-span-3 space-y-6">
+              <LegalStatusTable
+                rows={currentDocs.map((doc: CurrentDocument) => ({
+                  id: doc.id,
+                  name: doc.name,
+                  version: doc.version,
+                  isCurrent: true,
+                  status: acceptedDocIds.has(doc.id)
+                    ? 'accepted'
+                    : 'pending',
+                }))}
               />
-            )}
+
+              {canEditFeatures && (
+                <AcceptDocumentsCTA
+                  organisationId={ctx.org.id}
+                  acceptedOn={acceptedOn}
+                />
+              )}
+            </div>
           </div>
         </section>
 
+        {/* =============================
+            AUDIT & TRACEABILITY
+        ============================== */}
         <section className="space-y-3">
+          <h2 className="text-sm font-semibold text-slate-900">
+            Audit & traceability
+          </h2>
+
           <EvidenceLog
             organisationId={ctx.org.id}
             events={acceptanceEvents.map((e) => ({

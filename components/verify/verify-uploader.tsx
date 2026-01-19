@@ -1,4 +1,5 @@
 // components/verify/verify-uploader.tsx
+
 'use client'
 
 import { useMemo, useState } from 'react'
@@ -12,6 +13,11 @@ type Json =
   | string
   | Json[]
   | { [key: string]: Json }
+
+/* -----------------------------
+   Canonicalisation & hashing
+   (DO NOT CHANGE)
+------------------------------ */
 
 function canonicalizeJson(value: Json): Json {
   if (Array.isArray(value)) return value.map(canonicalizeJson)
@@ -39,6 +45,10 @@ async function sha256Hex(input: string): Promise<string> {
   const bytes = Array.from(new Uint8Array(digest))
   return bytes.map((b) => b.toString(16).padStart(2, '0')).join('')
 }
+
+/* -----------------------------
+   Component
+------------------------------ */
 
 export default function VerifyUploader() {
   const [fileName, setFileName] = useState<string | null>(null)
@@ -91,17 +101,64 @@ export default function VerifyUploader() {
     }
   }
 
+  function reset() {
+    setFileName(null)
+    setExpected('')
+    setComputed('')
+    setStatus('idle')
+    setError(null)
+  }
+
   return (
     <Card>
       <CardHeader className="space-y-1">
-        <div className="text-sm font-semibold">Verify locally</div>
+        <div className="text-sm font-semibold">Independent verification</div>
         <div className="text-xs text-muted-foreground">
-          Canonicalizes JSON, removes integrity/signature, then computes SHA-256.
+          All verification is performed locally in your browser. No data is
+          transmitted.
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4">
-        <div className="flex flex-col gap-2">
+      <CardContent className="space-y-6">
+        {/* Verdict banner */}
+        {status !== 'idle' && status !== 'hashing' && (
+          <div
+            className={`rounded-md border px-4 py-3 text-sm ${
+              status === 'ok'
+                ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+                : status === 'mismatch'
+                ? 'border-red-200 bg-red-50 text-red-800'
+                : 'border-yellow-200 bg-yellow-50 text-yellow-800'
+            }`}
+          >
+            {status === 'ok' && (
+              <>
+                <strong>Integrity verified.</strong> The uploaded Evidence Pack
+                matches the provided SHA-256 hash and has not been altered since
+                export.
+              </>
+            )}
+            {status === 'mismatch' && (
+              <>
+                <strong>Integrity mismatch.</strong> The uploaded file does not
+                match the provided hash. This may indicate modification or an
+                incorrect reference hash.
+              </>
+            )}
+            {status === 'error' && (
+              <>
+                <strong>Verification error.</strong> The file could not be
+                processed as a valid Evidence Pack JSON.
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Step 1 */}
+        <div className="space-y-2">
+          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Step 1 — Upload Evidence Pack
+          </div>
           <input
             type="file"
             accept="application/json,.json"
@@ -117,9 +174,13 @@ export default function VerifyUploader() {
           )}
         </div>
 
+        {/* Step 2 */}
         <div className="space-y-2">
+          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Step 2 — Expected hash
+          </div>
           <label className="text-xs text-muted-foreground">
-            Expected hash (from JSON integrity or PDF footer)
+            From PDF footer or JSON integrity block
           </label>
           <input
             className="w-full rounded-md border px-3 py-2 text-xs"
@@ -129,48 +190,40 @@ export default function VerifyUploader() {
           />
         </div>
 
+        {/* Step 3 */}
         <div className="space-y-2">
-          <label className="text-xs text-muted-foreground">Computed hash</label>
+          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Step 3 — Computed hash
+          </div>
           <div className="rounded-md border bg-muted px-3 py-2 text-xs break-all">
             {computed || '—'}
           </div>
+          {status === 'hashing' && (
+            <div className="text-xs text-muted-foreground">Computing hash…</div>
+          )}
         </div>
 
-        {status === 'hashing' && (
-          <div className="text-xs text-muted-foreground">Hashing…</div>
-        )}
-
-        {status === 'ok' && (
-          <div className="text-sm text-emerald-700">
-            ✅ Verified — hashes match.
-          </div>
-        )}
-
-        {(status === 'mismatch' || matches === false) && (
-          <div className="text-sm text-red-700">
-            ❌ Hash mismatch — the pack may be altered, corrupted, or not the
-            same pack referenced by the PDF.
-          </div>
-        )}
-
-        {status === 'error' && (
-          <div className="text-sm text-red-700">❌ {error}</div>
-        )}
-
+        {/* Actions */}
         <div className="flex gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => {
-              setFileName(null)
-              setExpected('')
-              setComputed('')
-              setStatus('idle')
-              setError(null)
-            }}
-          >
+          <Button type="button" variant="outline" onClick={reset}>
             Reset
           </Button>
+        </div>
+
+        {/* Scope boundary */}
+        <div className="rounded-md border bg-muted/50 px-4 py-3 text-xs text-muted-foreground">
+          <strong>Scope of verification</strong>
+          <ul className="mt-1 list-disc pl-4 space-y-1">
+            <li>
+              Confirms cryptographic integrity of the exported Evidence Pack
+            </li>
+            <li>
+              Verifies consistency between JSON and PDF representations
+            </li>
+            <li>
+              Does not certify legal compliance or provide legal advice
+            </li>
+          </ul>
         </div>
       </CardContent>
     </Card>

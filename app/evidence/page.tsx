@@ -1,6 +1,7 @@
 
 // app/evidence/page.tsx
 
+// app/evidence/page.tsx
 
 import type { Metadata } from "next"
 import Script from "next/script"
@@ -53,7 +54,7 @@ export default function EvidenceLandingPage() {
                 acceptedAnswer: {
                   "@type": "Answer",
                   text:
-                    "Most Evidence Packs are delivered within 72 hours once scope and documentation are confirmed.",
+                    "Most Evidence Packs are delivered within 72 hours once governance scope and documentation are confirmed.",
                 },
               },
               {
@@ -70,21 +71,21 @@ export default function EvidenceLandingPage() {
         }}
       />
 
-      {/* TOP NAV */}
+      {/* TOP NAV / CONTEXT */}
       <div className="mx-auto max-w-5xl px-6 pt-6">
-        <Link href="/" className="text-sm text-slate-500 hover:text-slate-700">
-          ← Back to Veriscopic
+        <Link href="/dashboard" className="text-sm text-slate-500 hover:text-slate-700">
+          ← Back to dashboard
         </Link>
       </div>
 
       {/* HERO */}
-      <section className="mx-auto max-w-5xl px-6 pt-20 pb-20">
+      <section className="mx-auto max-w-5xl px-6 pt-20 pb-16">
         <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
           Evidence Packs · External Assurance · Audit-Ready
         </p>
 
         <h1 className="mb-6 text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
-          AI Governance Evidence.
+          AI governance evidence.
           <br className="hidden sm:block" />
           Ready to be examined.
         </h1>
@@ -109,6 +110,22 @@ export default function EvidenceLandingPage() {
           >
             What’s included
           </a>
+        </div>
+      </section>
+
+      {/* IN-PRODUCT CONTEXT */}
+      <section className="mx-auto max-w-5xl px-6 pb-20">
+        <div className="rounded-md border border-slate-200 bg-slate-50 p-6">
+          <p className="text-sm font-medium text-slate-900">
+            Evidence for your organisation
+          </p>
+          <p className="mt-1 text-sm text-slate-600">
+            Evidence Packs are generated from your declared governance inputs,
+            including accepted platform documents and AI system declarations.
+          </p>
+          <p className="mt-2 text-xs text-slate-500">
+            Availability depends on governance completeness.
+          </p>
         </div>
       </section>
 
@@ -147,8 +164,8 @@ export default function EvidenceLandingPage() {
             "Hash-locked legal, privacy, and AI governance documents",
             "Immutable acceptance records with timestamps and document versions",
             "Externally shareable PDF evidence pack (redacted if required)",
-            "Machine-readable export suitable for audit and legal review",
-            "Guidance on presenting evidence during procurement or due diligence",
+            "Machine-readable JSON export suitable for audit and legal review",
+            "Clear verification instructions for third parties",
           ].map((item) => (
             <li
               key={item}
@@ -158,6 +175,25 @@ export default function EvidenceLandingPage() {
             </li>
           ))}
         </ul>
+      </section>
+
+      {/* VERIFY BRIDGE */}
+      <section className="border-t border-slate-200 bg-white">
+        <div className="mx-auto max-w-5xl px-6 py-20">
+          <h2 className="mb-4 text-2xl font-semibold">
+            Independent verification
+          </h2>
+          <p className="mb-6 max-w-3xl text-slate-600">
+            Every Evidence Pack can be independently verified using cryptographic
+            hashing. No login or trust in Veriscopic is required.
+          </p>
+          <Link
+            href="/verify"
+            className="inline-flex items-center justify-center rounded-md border border-slate-300 px-6 py-3 text-base font-medium text-slate-700 hover:bg-slate-50"
+          >
+            Verify an Evidence Pack
+          </Link>
+        </div>
       </section>
 
       {/* SAMPLE PDF */}
