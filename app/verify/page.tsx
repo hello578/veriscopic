@@ -25,6 +25,24 @@ export default function VerifyPage() {
         Veriscopic does not provide legal advice and does not certify compliance.
         Verification confirms integrity of exported evidence only.
       </p>
+
+      <div className="mt-12 rounded-md border bg-slate-50 px-6 py-4">
+  <p className="text-sm font-medium text-slate-900">
+    What to do next
+  </p>
+  <p className="mt-1 text-sm text-slate-600">
+    If this Evidence Pack was provided to you as part of procurement,
+    insurance review, or due diligence, you can reference the verified
+    hash in your internal assessment or request clarification from the
+    organisation if discrepancies are found.
+  </p>
+  <p className="mt-2 text-xs text-slate-500">
+    Verification confirms integrity only. It does not assess legal
+    compliance or risk classification.
+    You can verify this sample using the provided hash in the PDF footer.
+  </p>
+</div>
+
     </main>
   )
 }

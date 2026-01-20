@@ -1,16 +1,24 @@
 // lib/legal/export-evidence.ts
 
+// lib/legal/export-evidence.ts
+
 import 'server-only'
 
 import { supabaseServerRead } from '@/lib/supabase/server-read'
 import { sha256HexFromJson } from './evidence-pack-canonical'
 
+/* -------------------------------------------------------------------------- */
+/* Evidence Pack Contract                                                      */
+/* -------------------------------------------------------------------------- */
+
 export type EvidencePack = {
   evidence_pack_version: '1.0'
+
   organisation: {
     id: string
     name: string
   }
+
   generated_at: string
 
   governance_snapshot: {
@@ -55,14 +63,19 @@ export type EvidencePack = {
   }
 }
 
+/* -------------------------------------------------------------------------- */
+/* Export Evidence Pack                                                        */
+/* -------------------------------------------------------------------------- */
+
 export async function exportEvidencePack(
   organisationId: string
 ): Promise<EvidencePack> {
   const supabase = await supabaseServerRead()
 
-  // ─────────────────────────────────────────────
-  // Organisation
-  // ─────────────────────────────────────────────
+  /* ------------------------------------------------------------------------ */
+  /* Organisation                                                             */
+  /* ------------------------------------------------------------------------ */
+
   const { data: organisation } = await supabase
     .from('organisations')
     .select('id, name')
@@ -73,40 +86,40 @@ export async function exportEvidencePack(
     throw new Error('Organisation not found')
   }
 
-  // ─────────────────────────────────────────────
-  // Organisation audit events
-  // ─────────────────────────────────────────────
+  /* ------------------------------------------------------------------------ */
+  /* Organisation audit events                                                 */
+  /* ------------------------------------------------------------------------ */
+
   const { data: events } = await supabase
     .from('organisation_audit_events')
     .select('event_type, occurred_at, actor_user_id')
     .eq('organisation_id', organisationId)
     .order('occurred_at', { ascending: true })
 
-  // ─────────────────────────────────────────────
-  // Legal acceptance evidence (explicit FK)
-  // ─────────────────────────────────────────────
-  const {
-    data: acceptanceRows,
-    error: acceptanceError,
-  } = await supabase
-    .from('terms_acceptance')
-    .select(
+  /* ------------------------------------------------------------------------ */
+  /* Legal acceptance evidence                                                 */
+  /* ------------------------------------------------------------------------ */
+
+  const { data: acceptanceRows, error: acceptanceError } =
+    await supabase
+      .from('terms_acceptance')
+      .select(
+        `
+        document_id,
+        accepted_at,
+        content_hash,
+        user_id,
+        legal_documents:legal_documents!terms_acceptance_document_id_fkey (
+          id,
+          name,
+          document_type,
+          version,
+          jurisdiction
+        )
       `
-      document_id,
-      accepted_at,
-      content_hash,
-      user_id,
-      legal_documents:legal_documents!terms_acceptance_document_id_fkey (
-        id,
-        name,
-        document_type,
-        version,
-        jurisdiction
       )
-    `
-    )
-    .eq('organisation_id', organisationId)
-    .order('accepted_at', { ascending: true })
+      .eq('organisation_id', organisationId)
+      .order('accepted_at', { ascending: true })
 
   if (acceptanceError) {
     console.error(
@@ -116,9 +129,10 @@ export async function exportEvidencePack(
     throw new Error(acceptanceError.message)
   }
 
-  // ─────────────────────────────────────────────
-  // AI systems (declarative registry)
-  // ─────────────────────────────────────────────
+  /* ------------------------------------------------------------------------ */
+  /* AI systems registry                                                       */
+  /* ------------------------------------------------------------------------ */
+
   const { data: aiSystems } = await supabase
     .from('ai_systems')
     .select(
@@ -135,11 +149,12 @@ export async function exportEvidencePack(
 
   const generatedAt = new Date().toISOString()
 
-  // ─────────────────────────────────────────────
-  // Canonical pack (pre-hash)
-  // ─────────────────────────────────────────────
-  const packCore = {
-    evidence_pack_version: '1.0' as const,
+  /* ------------------------------------------------------------------------ */
+  /* Canonical pack (PRE-HASH)                                                  */
+  /* ------------------------------------------------------------------------ */
+
+  const packCore: Omit<EvidencePack, 'integrity'> = {
+    evidence_pack_version: '1.0',
 
     organisation: {
       id: organisation.id,
@@ -149,8 +164,8 @@ export async function exportEvidencePack(
     generated_at: generatedAt,
 
     governance_snapshot: {
-      ownership_model: 'single-owner enforced' as const,
-      audit_logging: 'enabled' as const,
+      ownership_model: 'single-owner enforced',
+      audit_logging: 'enabled',
       organisation_events: (events ?? []).map((e) => ({
         event_type: e.event_type,
         occurred_at: new Date(e.occurred_at).toISOString(),
@@ -158,18 +173,25 @@ export async function exportEvidencePack(
       })),
     },
 
-    legal_acceptance: (acceptanceRows ?? []).map((row: any) => ({
-      document_id: row.document_id,
-      document_name: row.legal_documents?.name ?? 'Unknown document',
-      document_type: row.legal_documents?.document_type ?? null,
-      version: row.legal_documents?.version ?? 'unknown',
-      jurisdiction: row.legal_documents?.jurisdiction ?? null,
-      content_hash: row.content_hash,
-      accepted_at: new Date(row.accepted_at).toISOString(),
-      accepted_by_user_id: row.user_id,
-    })),
+legal_acceptance: (acceptanceRows ?? []).map((row) => {
+  const doc = Array.isArray(row.legal_documents)
+    ? row.legal_documents[0]
+    : row.legal_documents
 
-    ai_systems: (aiSystems ?? []).map((s: any) => ({
+  return {
+    document_id: row.document_id,
+    document_name: doc?.name ?? 'Unknown document',
+    document_type: doc?.document_type ?? null,
+    version: doc?.version ?? 'unknown',
+    jurisdiction: doc?.jurisdiction ?? null,
+    content_hash: row.content_hash,
+    accepted_at: new Date(row.accepted_at).toISOString(),
+    accepted_by_user_id: row.user_id,
+  }
+}),
+
+
+    ai_systems: (aiSystems ?? []).map((s) => ({
       name: s.name,
       purpose: s.purpose,
       system_owner: s.system_owner,
@@ -180,7 +202,6 @@ export async function exportEvidencePack(
         : generatedAt,
     })),
 
-    // Declarative, non-judgemental mapping
     ai_act_mapping: [
       {
         article: 'Article 4',
@@ -205,10 +226,11 @@ export async function exportEvidencePack(
     ],
   }
 
-  // ─────────────────────────────────────────────
-  // Integrity hash (canonical JSON)
-  // ─────────────────────────────────────────────
-  const { checksum } = sha256HexFromJson(packCore as any)
+  /* ------------------------------------------------------------------------ */
+  /* Integrity hash                                                            */
+  /* ------------------------------------------------------------------------ */
+
+  const { checksum } = sha256HexFromJson(packCore)
 
   return {
     ...packCore,

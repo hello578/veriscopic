@@ -1,4 +1,4 @@
-//app/robots.ts
+// app/robots.ts
 
 import type { MetadataRoute } from "next"
 
@@ -7,7 +7,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: "/auth",
+      disallow: ["/auth", "/admin", "/app"],
     },
     sitemap: "https://veriscopic.com/sitemap.xml",
   }

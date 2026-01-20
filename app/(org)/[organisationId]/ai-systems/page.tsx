@@ -7,6 +7,15 @@ export default function AISystemsPage() {
     <main className="py-12">
       <div className="mx-auto max-w-3xl px-6 space-y-10">
 
+  <div className="mb-6 text-xs text-slate-500">
+  <span className="hover:text-slate-700">
+      <Link href="/dashboard">Dashboard</Link>
+       </span>
+      <span className="mx-2">/</span>
+      <span className="text-slate-700 font-medium">AI systems</span>
+       </div>
+
+
         {/* Page purpose */}
         <section className="space-y-2">
           <h1 className="text-2xl font-semibold text-slate-900">
@@ -62,7 +71,7 @@ export default function AISystemsPage() {
             disabled
             className="inline-flex cursor-not-allowed items-center justify-center rounded-md bg-slate-200 px-5 py-2.5 text-sm font-medium text-slate-600"
           >
-            Add AI system (coming next)
+            Coming next
           </button>
 
           <p className="text-xs text-slate-500">

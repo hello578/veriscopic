@@ -2,22 +2,29 @@
 
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useMemo, useState } from "react"
 import { supabaseBrowser } from "@/lib/supabase/client"
+
+type Mode = "idle" | "sending" | "sent"
+
+function isValidEmail(email: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
+}
 
 export default function LoginForm() {
   const supabase = supabaseBrowser()
-  const router = useRouter()
 
   const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const [mode, setMode] = useState<Mode>("idle")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const emailOk = useMemo(() => isValidEmail(email), [email])
 
   async function signInWithGoogle() {
     if (loading) return
     setLoading(true)
+    setError(null)
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -30,62 +37,133 @@ export default function LoginForm() {
       setError(error.message)
       setLoading(false)
     }
+    // Success will redirect away automatically
   }
 
-  async function signInWithEmail(e: React.FormEvent) {
+  async function sendMagicLink(e: React.FormEvent) {
     e.preventDefault()
-    setLoading(true)
+    if (loading) return
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+    const trimmed = email.trim().toLowerCase()
+    if (!isValidEmail(trimmed)) {
+      setError("Please enter a valid email address.")
+      return
+    }
+
+    setLoading(true)
+    setError(null)
+    setMode("sending")
+
+    const { error } = await supabase.auth.signInWithOtp({
+      email: trimmed,
+      options: {
+        emailRedirectTo: `${location.origin}/auth/callback`,
+        shouldCreateUser: true,
+      },
     })
 
     if (error) {
       setError(error.message)
       setLoading(false)
+      setMode("idle")
       return
     }
 
-   router.refresh()
-
-
+    setMode("sent")
+    setLoading(false)
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-50 px-6">
-      <div className="w-full max-w-md rounded-lg border bg-white p-8 shadow-sm">
-        <h1 className="text-2xl font-semibold">Sign in to Veriscopic</h1>
+    <main className="min-h-screen bg-slate-50 px-6">
+      <div className="mx-auto flex min-h-screen w-full max-w-md items-center">
+        <div className="w-full rounded-lg border bg-white p-8 shadow-sm">
+          <h1 className="text-2xl font-semibold text-slate-900">
+            Sign in to Veriscopic
+          </h1>
 
-        <button
-          onClick={signInWithGoogle}
-          disabled={loading}
-          className="mt-6 w-full rounded-md bg-slate-900 py-2 text-white"
-        >
-          Continue with Google
-        </button>
+          <p className="mt-2 text-sm text-slate-600">
+            Sign in using Google, or receive a secure email link. No passwords required.
+          </p>
 
-        <form onSubmit={signInWithEmail} className="mt-6 space-y-4">
-          <input
-            type="email"
-            required
-            className="w-full rounded-md border px-3 py-2"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <input
-            type="password"
-            required
-            className="w-full rounded-md border px-3 py-2"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <button className="w-full rounded-md border py-2">
-            Sign in with email
+          {/* Google */}
+          <button
+            onClick={signInWithGoogle}
+            disabled={loading}
+            className="mt-6 w-full rounded-md bg-slate-900 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60"
+          >
+            Continue with Google
           </button>
-        </form>
 
-        {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+          {/* Divider */}
+          <div className="my-6 flex items-center gap-3">
+            <div className="h-px flex-1 bg-slate-200" />
+            <span className="text-xs text-slate-500">or</span>
+            <div className="h-px flex-1 bg-slate-200" />
+          </div>
+
+          {/* Magic link */}
+          {mode !== "sent" ? (
+            <form onSubmit={sendMagicLink} className="space-y-3">
+              <label className="block text-xs font-medium text-slate-700">
+                Email address
+              </label>
+
+              <input
+                type="email"
+                autoComplete="email"
+                required
+                className="w-full rounded-md border px-3 py-2 text-sm"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@company.com"
+              />
+
+              <button
+                type="submit"
+                disabled={loading || !emailOk}
+                className="w-full rounded-md border border-slate-300 bg-white py-2 text-sm font-medium text-slate-900 hover:bg-slate-50 disabled:opacity-60"
+              >
+                {mode === "sending" ? "Sending link…" : "Send magic link"}
+              </button>
+
+              <p className="text-xs text-slate-500">
+                New to Veriscopic? Enter your email and we’ll create your account automatically.
+              </p>
+            </form>
+          ) : (
+            <div className="space-y-3">
+              <div className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+                <strong>Check your inbox.</strong> We sent a secure sign-in link to{" "}
+                <span className="font-medium">{email.trim()}</span>.
+              </div>
+
+              <p className="text-xs text-slate-500">
+                If you don’t see it within a minute, check spam/junk or try again.
+              </p>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setMode("idle")
+                  setError(null)
+                }}
+                className="w-full rounded-md border border-slate-300 bg-white py-2 text-sm font-medium text-slate-900 hover:bg-slate-50"
+              >
+                Use a different email
+              </button>
+            </div>
+          )}
+
+          {error && (
+            <p className="mt-4 text-sm text-red-600">
+              {error}
+            </p>
+          )}
+
+          <p className="mt-6 text-xs text-slate-500">
+            By signing in you agree to the platform terms and privacy notice.
+          </p>
+        </div>
       </div>
     </main>
   )

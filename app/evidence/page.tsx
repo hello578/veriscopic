@@ -1,11 +1,23 @@
 
 // app/evidence/page.tsx
 
-// app/evidence/page.tsx
-
 import type { Metadata } from "next"
 import Script from "next/script"
 import Link from "next/link"
+import { sampleEvidencePdfExists } from '@/lib/legal/sample-pdf-exists'
+
+const hasSample = sampleEvidencePdfExists()
+
+{hasSample && (
+  <a
+    href="/sample/veriscopic-evidence-pack-sample.pdf"
+    className="text-sm text-slate-600 underline"
+    target="_blank"
+  >
+    View public sample evidence pack
+  </a>
+)}
+
 
 export const metadata: Metadata = {
   title: "AI Governance Evidence Packs for Enterprise Procurement",
@@ -77,6 +89,13 @@ export default function EvidenceLandingPage() {
           ← Back to dashboard
         </Link>
       </div>
+      <div className="mb-6 text-xs text-slate-500">
+  <Link href="/dashboard" className="hover:text-slate-700">
+    Dashboard
+  </Link>
+  <span className="mx-2">/</span>
+  <span className="text-slate-700 font-medium">Evidence</span>
+       </div>
 
       {/* HERO */}
       <section className="mx-auto max-w-5xl px-6 pt-20 pb-16">
@@ -216,6 +235,8 @@ export default function EvidenceLandingPage() {
             className="inline-flex items-center justify-center rounded-md border border-slate-300 px-6 py-3 text-base font-medium text-slate-700 hover:bg-slate-50"
           >
             View sample PDF
+            “This is a redacted example. Organisation-specific fields are hidden, 
+            however structure and integrity guarantees are unchanged.”
           </a>
         </div>
       </section>

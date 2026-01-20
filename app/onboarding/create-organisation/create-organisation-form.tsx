@@ -1,3 +1,5 @@
+
+// app/onboarding/create-organisation/create-organisation-form.tsx
 'use client'
 
 import { useState } from 'react'
@@ -10,7 +12,6 @@ export default function CreateOrganisationForm() {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-
     if (loading) return
 
     setLoading(true)
@@ -25,8 +26,15 @@ export default function CreateOrganisationForm() {
       })
 
       if (!res.ok) {
-        const text = await res.text()
-        throw new Error(text || 'Failed to create organisation')
+        // robust: API might return text or JSON
+        const contentType = res.headers.get('content-type') || ''
+        if (contentType.includes('application/json')) {
+          const j = await res.json().catch(() => null)
+          throw new Error(j?.error || 'Failed to create organisation')
+        } else {
+          const text = await res.text().catch(() => '')
+          throw new Error(text || 'Failed to create organisation')
+        }
       }
 
       const data: { organisationId?: string } = await res.json()
@@ -35,39 +43,42 @@ export default function CreateOrganisationForm() {
         throw new Error('Organisation created but no ID returned')
       }
 
-      // ✅ deterministic redirect
       router.push(`/${data.organisationId}/dashboard`)
+      router.refresh()
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Something went wrong'
-      )
+      setError(err instanceof Error ? err.message : 'Something went wrong')
+    } finally {
       setLoading(false)
     }
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <input
-        name="name"
-        type="text"
-        required
-        placeholder="Organisation name"
-        className="w-full rounded-md border p-3"
-      />
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-slate-900">
+          Organisation name
+        </label>
+        <input
+          name="name"
+          type="text"
+          required
+          placeholder="e.g. Acme Health Ltd"
+          className="w-full rounded-md border px-3 py-2 text-sm"
+        />
+        <p className="text-xs text-slate-500">
+          This name appears on evidence exports and acceptance logs.
+        </p>
+      </div>
 
       <button
         type="submit"
         disabled={loading}
-        className="rounded-md bg-black px-4 py-2 text-white disabled:opacity-50"
+        className="w-full rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60"
       >
-        {loading ? 'Creating…' : 'Create organisation'}
+        {loading ? 'Creating organisation…' : 'Create organisation'}
       </button>
 
-      {error && (
-        <p className="text-sm text-red-600">
-          {error}
-        </p>
-      )}
+      {error && <p className="text-sm text-red-600">{error}</p>}
     </form>
   )
 }
