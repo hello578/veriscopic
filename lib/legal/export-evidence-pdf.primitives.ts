@@ -168,32 +168,52 @@ export function applyFooters(
   const range = doc.bufferedPageRange()
   const totalPages = range.count
 
+  // Must live INSIDE the reserved footer band so PDFKit never thinks it overflowed.
+  const FOOTER_H = 60
+  const footerTopOffset = 8
+
   for (let i = range.start; i < range.start + range.count; i++) {
     doc.switchToPage(i)
 
-    const y = doc.page.height - doc.page.margins.bottom + 18
+    const footerTopY =
+      doc.page.height - doc.page.margins.bottom - FOOTER_H + footerTopOffset
+
+    // Draw footer text without affecting the main flow cursor
+    const prevX = doc.x
+    const prevY = doc.y
+
     doc.font('Inter').fontSize(8).fillColor('#6b7280')
+
+    const footerWidth =
+      doc.page.width - doc.page.margins.left - doc.page.margins.right
 
     if (opts.isSample) {
       doc
         .fillColor('#9ca3af')
-        .text('Public sample — not client evidence', doc.page.margins.left, y, {
-          width: doc.page.width - doc.page.margins.left - doc.page.margins.right,
+        .text('Public sample — not client evidence', doc.page.margins.left, footerTopY, {
+          width: footerWidth,
           align: 'center',
+          lineBreak: false,
         })
       doc.fillColor('#6b7280')
     } else {
       doc.text(
         `Evidence Pack Hash: ${ellipsize(opts.hash, 56)}`,
         doc.page.margins.left,
-        y
+        footerTopY,
+        { width: footerWidth, lineBreak: false }
       )
     }
 
     doc.text(
       `Generated: ${toUtcDate(opts.generatedAt)} · Page ${i + 1} of ${totalPages}`,
       doc.page.margins.left,
-      y + 10
+      footerTopY + 12,
+      { width: footerWidth, lineBreak: false }
     )
+
+    // Restore cursor so footer pass never changes layout decisions
+    doc.x = prevX
+    doc.y = prevY
   }
 }

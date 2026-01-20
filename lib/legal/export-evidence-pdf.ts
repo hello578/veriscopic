@@ -1,6 +1,5 @@
 // lib/legal/export-evidence-pdf.ts
-
-import 'server-only'
+// lib/legal/export-evidence-pdf.ts
 
 import type { EvidencePack } from './export-evidence'
 import { renderEvidencePackPdfCore } from './export-evidence-pdf.core'

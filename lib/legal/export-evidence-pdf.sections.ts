@@ -81,7 +81,6 @@ export function renderExecutiveSummary(opts: {
 }) {
   const { doc, isSample } = opts
 
-  doc.addPage()
   pageH1(doc, 'Executive Summary — What Regulators See')
 
   doc.text(
@@ -127,7 +126,6 @@ export function renderEvidenceIndex(opts: {
 }) {
   const { doc, counts, completeness } = opts
 
-  doc.addPage()
   pageH1(doc, 'Evidence Index')
 
   callout(doc, {
@@ -160,7 +158,7 @@ export function renderGovernanceSnapshot(opts: {
 }) {
   const { doc, pack, isSample, maxPages } = opts
 
-  doc.addPage()
+  
   pageH1(doc, 'Governance Snapshot')
 
   const counts = pack.governance_snapshot.organisation_events.length
@@ -279,7 +277,7 @@ export function renderAiSystems(opts: {
 }) {
   const { doc, pack, isSample, maxPages } = opts
 
-  doc.addPage()
+
   pageH1(doc, 'AI Systems Registry')
 
   const count = pack.ai_systems.length
@@ -327,7 +325,7 @@ export function renderAiActMap(opts: {
 }) {
   const { doc, pack, isSample, maxPages } = opts
 
-  doc.addPage()
+  
   pageH1(doc, 'EU AI Act Evidence Map (Governance)')
 
   doc.text(
@@ -387,7 +385,7 @@ export function renderVerificationAppendix(opts: {
 }) {
   const { doc, isSample } = opts
 
-  doc.addPage()
+
   pageH1(doc, 'Appendix: Verification (Integrity)')
 
   doc.text(

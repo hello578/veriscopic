@@ -40,7 +40,7 @@ export async function GET(req: Request) {
 
   // --- Canonical export
   const pack = await exportEvidencePack(organisationId)
-  const pdfBytes = await renderEvidencePackPdf(pack)
+  const pdfBytes = await renderEvidencePackPdf(pack, { mode: 'full' })
 
   const buffer = Buffer.from(pdfBytes)
   const filename = `veriscopic-evidence-pack-${organisationId}.pdf`

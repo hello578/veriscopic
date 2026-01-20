@@ -1,12 +1,14 @@
 // lib/legal/export-evidence-pdf.core.ts
+
 import path from 'path'
 import PDFDocument from 'pdfkit'
+import { PDFDocument as PDFLibDocument } from 'pdf-lib'
 
 type PDFKitDocument = InstanceType<typeof PDFDocument>
 
 import type { EvidencePack } from './export-evidence'
-
 import { applyFooters } from './export-evidence-pdf.primitives'
+
 import {
   renderAiActMap,
   renderAiSystems,
@@ -18,35 +20,30 @@ import {
   renderVerificationAppendix,
 } from './export-evidence-pdf.sections'
 
-/* -------------------------------------------------------------------------- */
-/* Assets                                                                     */
-/* -------------------------------------------------------------------------- */
-
 const FONT_REGULAR = path.join(process.cwd(), 'public/fonts/Inter_18pt-Regular.ttf')
 const FONT_SEMIBOLD = path.join(process.cwd(), 'public/fonts/Inter_18pt-SemiBold.ttf')
 const BRAND_MARK = path.join(process.cwd(), 'public/assets/brand/veriscopic-mark-mono.png')
-
-/* -------------------------------------------------------------------------- */
-/* Renderer                                                                   */
-/* -------------------------------------------------------------------------- */
 
 export async function renderEvidencePackPdfCore(
   pack: EvidencePack,
   options?: { mode?: 'full' | 'sample' }
 ): Promise<Buffer> {
-  const mode = options?.mode ?? 'full'
-  const isSample = mode === 'sample'
-  const MAX_PAGES = isSample ? 5 : 8
+  console.log('[PDF] renderEvidencePackPdfCore CALLED', {
+    mode: options?.mode,
+    organisation: pack.organisation?.id,
+  })
+
+  const isSample = options?.mode === 'sample'
+  const SAMPLE_PAGES = 5
+
+  console.log('[PDF] isSample?', isSample)
+
+  /* ----------------------- PDFKit render ----------------------- */
 
   const doc: PDFKitDocument = new PDFDocument({
     size: 'A4',
     margin: 54,
     bufferPages: true,
-    info: {
-      Title: isSample ? 'Veriscopic Evidence Pack — Sample (Redacted)' : 'Veriscopic Evidence Pack',
-      Author: 'Veriscopic',
-      Subject: 'AI Governance Evidence Pack',
-    },
   })
 
   doc.registerFont('Inter', FONT_REGULAR)
@@ -54,11 +51,16 @@ export async function renderEvidencePackPdfCore(
   doc.font('Inter')
 
   const chunks: Buffer[] = []
-  const done = new Promise<Buffer>((resolve, reject) => {
-    doc.on('data', (c: Buffer) => chunks.push(c))
+  const rendered = new Promise<Buffer>((resolve, reject) => {
+    doc.on('data', c => chunks.push(c))
     doc.on('end', () => resolve(Buffer.concat(chunks)))
     doc.on('error', reject)
   })
+
+  const newPage = () => {
+    doc.addPage()
+    console.log('[PDF] addPage → total now', doc.bufferedPageRange().count)
+  }
 
   const counts = {
     legalAcceptance: pack.legal_acceptance.length,
@@ -68,33 +70,51 @@ export async function renderEvidencePackPdfCore(
   }
 
   const completeness =
-    counts.legalAcceptance > 0 && counts.aiSystems > 0
+    counts.legalAcceptance && counts.aiSystems
       ? 'Strong'
-      : counts.legalAcceptance > 0
-        ? 'Developing'
-        : 'Incomplete'
+      : counts.legalAcceptance
+      ? 'Developing'
+      : 'Incomplete'
 
-  // 1) Cover (page 1)
+  // Page 1 — Cover
   renderCover({ doc, pack, isSample, brandMarkPath: BRAND_MARK })
 
-  // 2) Summary / index / sections
-  // Hard page cap: if we’re already at cap, we skip remaining sections.
-  const canAddMorePages = () => doc.bufferedPageRange().count < MAX_PAGES
+  if (isSample) {
+    newPage()
+    renderExecutiveSummary({ doc, isSample })
+    renderEvidenceIndex({ doc, counts, completeness })
 
-  if (canAddMorePages()) renderExecutiveSummary({ doc, isSample })
-  if (canAddMorePages()) renderEvidenceIndex({ doc, counts, completeness })
-  if (canAddMorePages()) renderGovernanceSnapshot({ doc, pack, isSample, maxPages: MAX_PAGES })
+    newPage()
+    renderLegalAcceptance({ doc, pack, isSample, maxPages: SAMPLE_PAGES })
 
-  // Legal Acceptance continues on the current page (no forced addPage inside)
-  if (doc.bufferedPageRange().count <= MAX_PAGES) {
-    renderLegalAcceptance({ doc, pack, isSample, maxPages: MAX_PAGES })
+    newPage()
+    renderAiSystems({ doc, pack, isSample, maxPages: SAMPLE_PAGES })
+
+    newPage()
+    renderAiActMap({ doc, pack, isSample, maxPages: SAMPLE_PAGES })
+  } else {
+    newPage()
+    renderExecutiveSummary({ doc, isSample })
+
+    newPage()
+    renderEvidenceIndex({ doc, counts, completeness })
+
+    newPage()
+    renderGovernanceSnapshot({ doc, pack, isSample, maxPages: 8 })
+
+    newPage()
+    renderLegalAcceptance({ doc, pack, isSample, maxPages: 8 })
+
+    newPage()
+    renderAiSystems({ doc, pack, isSample, maxPages: 8 })
+
+    newPage()
+    renderAiActMap({ doc, pack, isSample, maxPages: 8 })
+
+    newPage()
+    renderVerificationAppendix({ doc, isSample })
   }
 
-  if (canAddMorePages()) renderAiSystems({ doc, pack, isSample, maxPages: MAX_PAGES })
-  if (canAddMorePages()) renderAiActMap({ doc, pack, isSample, maxPages: MAX_PAGES })
-  if (canAddMorePages()) renderVerificationAppendix({ doc, isSample })
-
-  // 3) Footer + watermark (MUST be last, MUST NOT add pages)
   applyFooters(doc, {
     generatedAt: pack.generated_at,
     hash: pack.integrity.canonical_json_sha256,
@@ -102,5 +122,39 @@ export async function renderEvidencePackPdfCore(
   })
 
   doc.end()
-  return done
+
+  const pdfBuffer = await rendered
+
+  console.log('[PDF] PDFKit render complete, byteLength =', pdfBuffer.length)
+
+  /* ----------------------- HARD TRUNCATION ----------------------- */
+
+  if (!isSample) {
+    console.log('[PDF] full mode → returning PDFKit output')
+    return pdfBuffer
+  }
+
+  console.log('[PDF] sample mode → ENTERING TRUNCATION')
+
+  const src = await PDFLibDocument.load(pdfBuffer)
+  console.log('[PDF] source page count (before truncation):', src.getPageCount())
+
+  const out = await PDFLibDocument.create()
+  const pagesToCopy = Array.from({ length: SAMPLE_PAGES }, (_, i) => i)
+
+  const pages = await out.copyPages(src, pagesToCopy)
+  pages.forEach(p => out.addPage(p))
+
+  const finalBuffer = Buffer.from(await out.save())
+  const finalDoc = await PDFLibDocument.load(finalBuffer)
+
+  console.log('[PDF] FINAL sample page count:', finalDoc.getPageCount())
+
+  if (finalDoc.getPageCount() !== SAMPLE_PAGES) {
+    throw new Error(
+      `[PDF] Sample PDF invariant violated — expected ${SAMPLE_PAGES}, got ${finalDoc.getPageCount()}`
+    )
+  }
+
+  return finalBuffer
 }
