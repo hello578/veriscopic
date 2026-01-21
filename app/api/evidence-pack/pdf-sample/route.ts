@@ -35,7 +35,4 @@ return new Response(new Uint8Array(pdfBytes), {
     'Cache-Control': 'no-store',
   },
 })
-
-
-
 }

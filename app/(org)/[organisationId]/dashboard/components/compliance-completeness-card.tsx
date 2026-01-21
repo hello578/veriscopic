@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/tooltip'
 import { CheckCircle2, XCircle, Info } from 'lucide-react'
 
-export type CompletenessStatus = 'complete' | 'partial' | 'incomplete'
+export type CompletenessStatus = 'strong' | 'developing' | 'incomplete'
 
 export interface CompletenessResult {
   status: CompletenessStatus
@@ -28,11 +28,11 @@ interface Props {
 }
 
 function statusBadge(status: CompletenessStatus) {
-  if (status === 'complete') {
-    return <Badge className="bg-emerald-100 text-emerald-700">Complete</Badge>
+  if (status === 'strong') {
+    return <Badge className="bg-emerald-100 text-emerald-700">Strong</Badge>
   }
-  if (status === 'partial') {
-    return <Badge className="bg-amber-100 text-amber-700">Partial</Badge>
+  if (status === 'developing') {
+    return <Badge className="bg-amber-100 text-amber-700">Developing</Badge>
   }
   return <Badge variant="secondary">Incomplete</Badge>
 }
@@ -130,7 +130,7 @@ export function ComplianceCompletenessCard({
           <div className="h-2 w-full rounded-full bg-slate-100">
             <div
               className={`h-full rounded-full transition-all ${
-                completeness.status === 'complete'
+                completeness.status === 'strong'
                   ? 'bg-emerald-600'
                   : 'bg-slate-800'
               }`}

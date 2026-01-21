@@ -7,7 +7,7 @@ const REQUIRED_DOC_TYPES = [
   'AI Governance Disclosure',
 ]
 
-export type CompletenessStatus = 'complete' | 'partial' | 'incomplete'
+export type CompletenessStatus = 'strong' | 'developing' | 'incomplete'
 
 export function computeCompleteness({
   currentDocs,
@@ -23,8 +23,8 @@ export function computeCompleteness({
     name => !presentNames.has(name)
   )
 
-  let status: CompletenessStatus = 'complete'
-  if (missingDocs.length > 0 || !hasAISystems) status = 'partial'
+  let status: CompletenessStatus = 'strong'
+  if (missingDocs.length > 0 || !hasAISystems) status = 'developing'
   if (presentNames.size === 0 && !hasAISystems) status = 'incomplete'
 
   return {

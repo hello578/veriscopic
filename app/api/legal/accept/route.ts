@@ -1,3 +1,6 @@
+
+//app/api/legal/accept/route.ts
+
 import { NextResponse } from 'next/server'
 import { supabaseServerWrite } from '@/lib/supabase/server-write'
 

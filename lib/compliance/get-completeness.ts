@@ -1,5 +1,7 @@
 // lib/compliance/get-completeness.ts
+// lib/compliance/get-completeness.ts
 
+import 'server-only'
 import { supabaseServerRead } from '@/lib/supabase/server-read'
 import type { CompletenessResult } from '@/lib/types/compliance'
 
@@ -8,11 +10,19 @@ export async function getCompleteness(
 ): Promise<CompletenessResult> {
   const supabase = await supabaseServerRead()
 
+  /**
+   * These are PLATFORM documents.
+   * Presence means "accepted and recorded", not "legally sufficient".
+   */
   const REQUIRED_DOCS = [
     'platform-terms',
     'privacy-notice',
     'ai-governance-disclosure',
   ]
+
+  /* ---------------------------------------------------------------------- */
+  /* Legal documents acceptance                                              */
+  /* ---------------------------------------------------------------------- */
 
   const { data: acceptedDocs } = await supabase
     .from('terms_acceptance')
@@ -26,11 +36,15 @@ export async function getCompleteness(
   const presentDocs =
     acceptedDocs
       ?.map((row) => row.legal_documents?.[0]?.slug)
-      .filter(Boolean) ?? []
+      .filter((s): s is string => Boolean(s)) ?? []
 
   const missingDocs = REQUIRED_DOCS.filter(
     (doc) => !presentDocs.includes(doc)
   )
+
+  /* ---------------------------------------------------------------------- */
+  /* AI systems presence                                                     */
+  /* ---------------------------------------------------------------------- */
 
   const { count: aiSystemsCount } = await supabase
     .from('ai_systems')
@@ -38,6 +52,10 @@ export async function getCompleteness(
     .eq('organisation_id', organisationId)
 
   const hasAISystems = (aiSystemsCount ?? 0) > 0
+
+  /* ---------------------------------------------------------------------- */
+  /* Accountability (org ownership/admin)                                    */
+  /* ---------------------------------------------------------------------- */
 
   const { count: accountabilityCount } = await supabase
     .from('organisation_members')
@@ -47,15 +65,26 @@ export async function getCompleteness(
 
   const hasAccountability = (accountabilityCount ?? 0) > 0
 
+  /* ---------------------------------------------------------------------- */
+  /* Status logic (descriptive only)                                          */
+  /* ---------------------------------------------------------------------- */
+
   let status: CompletenessResult['status'] = 'complete'
 
-  if (missingDocs.length || !hasAISystems) {
+  if (missingDocs.length > 0 || !hasAISystems) {
     status = 'partial'
   }
 
-  if (missingDocs.length === REQUIRED_DOCS.length) {
+  if (
+    missingDocs.length === REQUIRED_DOCS.length &&
+    !hasAISystems
+  ) {
     status = 'incomplete'
   }
+
+  /* ---------------------------------------------------------------------- */
+  /* Result                                                                  */
+  /* ---------------------------------------------------------------------- */
 
   return {
     status,
