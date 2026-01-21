@@ -24,12 +24,12 @@ export function LegalStatusTable({
   return (
     <Card className="border border-slate-200 bg-white shadow-sm">
       <CardHeader className="px-6 pb-4">
-     <h3 className="text-sm font-semibold text-slate-900">
-       Legal documents (platform-issued)
-     </h3>
-     <p className="text-xs text-slate-500">
-      Accepted versions are cryptographically bound and immutable.
-     </p>
+        <h3 className="text-sm font-semibold text-slate-900">
+          Legal documents (platform-issued)
+        </h3>
+        <p className="text-xs text-slate-500">
+          Accepted versions are cryptographically bound and immutable.
+        </p>
       </CardHeader>
 
       <CardContent className="px-6 pb-6">
@@ -64,7 +64,8 @@ export function LegalStatusTable({
                     {isOutdated && (
                       <div className="flex items-center gap-1 text-xs text-amber-700">
                         <AlertTriangle className="h-3.5 w-3.5" />
-                        A newer version is available. Your previous acceptance remains recorded.
+                        A newer version is available. Your previous acceptance
+                        remains recorded.
                       </div>
                     )}
                   </div>
@@ -96,7 +97,12 @@ export function LegalStatusTable({
                       </Badge>
                     )}
 
-                    <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-slate-600 transition" />
+                    <div className="flex items-center gap-1 text-xs text-slate-500">
+                      <span className="hidden sm:inline">
+                        View document
+                      </span>
+                      <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-slate-600 transition" />
+                    </div>
                   </div>
                 </Link>
               )
@@ -107,4 +113,5 @@ export function LegalStatusTable({
     </Card>
   )
 }
+
 

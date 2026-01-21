@@ -1,6 +1,6 @@
 export type CompletenessStatus =
-  | 'complete'
-  | 'partial'
+  | 'strong'
+  | 'developing'
   | 'incomplete'
 
 export interface CompletenessBreakdown {

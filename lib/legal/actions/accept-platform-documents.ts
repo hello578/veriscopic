@@ -1,6 +1,6 @@
 // lib/legal/actions/accept-platform-documents.ts
 
-// lib/legal/actions/accept-platform-documents.ts
+
 'use server'
 
 import { revalidatePath } from 'next/cache'

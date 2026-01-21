@@ -3,46 +3,97 @@
 
 import { NextResponse } from 'next/server'
 import { supabaseServerWrite } from '@/lib/supabase/server-write'
+import { requireMember } from '@/lib/rbac/guards'
 
+export const runtime = 'nodejs'
 
 export async function POST(request: Request) {
   const supabase = await supabaseServerWrite()
 
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser()
 
-  const { data: userData, error: userErr } = await supabase.auth.getUser()
-  if (userErr) return new NextResponse(userErr.message, { status: 401 })
-
-  const user = userData.user
-  if (!user) return new NextResponse('Not authenticated', { status: 401 })
+  if (userError || !user) {
+    return NextResponse.json({ error: 'Unauthenticated' }, { status: 401 })
+  }
 
   const body = await request.json().catch(() => null)
   const documentIds: string[] = body?.documentIds
 
   if (!Array.isArray(documentIds) || documentIds.length === 0) {
-    return new NextResponse('Missing documentIds', { status: 400 })
+    return NextResponse.json(
+      { error: 'Missing documentIds' },
+      { status: 400 }
+    )
   }
 
-  const userAgent = request.headers.get('user-agent') ?? null
-  const ip =
-    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
-    request.headers.get('x-real-ip') ??
-    null
+  // Resolve organisation
+  const { data: memberships } = await supabase
+    .from('organisation_members')
+    .select('organisation_id')
+    .eq('user_id', user.id)
+    .limit(1)
 
-  // Insert acceptance rows (append-only evidence)
-  const rows = documentIds.map((document_id) => ({
+  const organisationId = memberships?.[0]?.organisation_id
+  if (!organisationId) {
+    return NextResponse.json({ error: 'No organisation' }, { status: 403 })
+  }
+
+  const access = await requireMember(organisationId)
+  if (!access.ok) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
+  // Fetch documents + hashes
+  const { data: documents } = await supabase
+    .from('legal_documents')
+    .select('id, content_hash, version')
+    .in('id', documentIds)
+
+  if (!documents || documents.length === 0) {
+    return NextResponse.json(
+      { error: 'Documents not found' },
+      { status: 404 }
+    )
+  }
+
+  const acceptedAt = new Date().toISOString()
+
+  // Insert acceptance evidence (idempotent)
+  const acceptanceRows = documents.map((doc) => ({
+    organisation_id: organisationId,
+    document_id: doc.id,
     user_id: user.id,
-    document_id,
-    ip_address: ip,
-    user_agent: userAgent,
+    content_hash: doc.content_hash,
+    accepted_at: acceptedAt,
   }))
 
-  // Avoid duplicate insert errors if user refreshes:
-  // We'll insert one by one and ignore unique constraint conflicts if you add the unique index.
-  const { error } = await supabase.from('terms_acceptance').insert(rows)
+  const { error: insertError } = await supabase
+    .from('terms_acceptance')
+    .upsert(acceptanceRows)
 
-  if (error) {
-    return new NextResponse(error.message, { status: 400 })
+  if (insertError) {
+    return NextResponse.json(
+      { error: insertError.message },
+      { status: 500 }
+    )
   }
+
+  // Audit log
+  await supabase.from('organisation_audit_events').insert(
+    documents.map((doc) => ({
+      organisation_id: organisationId,
+      event_type: 'legal_document.accepted',
+      actor_user_id: user.id,
+      occurred_at: acceptedAt,
+      metadata: {
+        document_id: doc.id,
+        version: doc.version,
+      },
+    }))
+  )
 
   return NextResponse.json({ ok: true })
 }
