@@ -1,6 +1,5 @@
 
-// app/legal/documents/[documentId]/page.tsx 
-
+// app/(org)/[organisationId]/legal/documents/[documentId]/page.tsx
 
 import { notFound, redirect } from 'next/navigation'
 import { supabaseServerRead } from '@/lib/supabase/server-read'
@@ -13,6 +12,10 @@ import { CheckCircle2 } from 'lucide-react'
 
 import { AcceptDocumentsButton } from '@/components/legal/accept-documents-button'
 import { getOrganisationAcceptanceEvents } from '@/lib/legal/read-acceptance'
+
+// -----------------------------------------------------------------------------
+// Utils
+// -----------------------------------------------------------------------------
 
 function formatDate(iso?: string | null) {
   if (!iso) return null
@@ -29,39 +32,38 @@ function daysSince(iso?: string | null) {
   if (!iso) return null
   const then = new Date(iso).getTime()
   if (Number.isNaN(then)) return null
-  const now = Date.now()
-  return Math.floor((now - then) / (1000 * 60 * 60 * 24))
+  return Math.floor((Date.now() - then) / (1000 * 60 * 60 * 24))
 }
+
+// -----------------------------------------------------------------------------
+// Page
+// -----------------------------------------------------------------------------
+
 export default async function LegalDocumentPage({
   params,
 }: {
-  params: Promise<{ documentId: string }>
+  params: Promise<{
+    organisationId: string
+    documentId: string
+  }>
 }) {
-  const { documentId } = await params
+  const { organisationId, documentId } = await params
 
+  // ---------------------------------------------------------------------------
+  // Auth / RBAC (deterministic)
+  // ---------------------------------------------------------------------------
+
+  const membership = await requireMember(organisationId)
+  if (!membership.ok) {
+    redirect(membership.reason === 'unauthenticated' ? '/auth/login' : '/')
+  }
 
   const supabase = await supabaseServerRead()
 
-  // Auth
-  const { data: userRes } = await supabase.auth.getUser()
-const user = userRes?.user
-if (!user) redirect('/auth/login')
+  // ---------------------------------------------------------------------------
+  // Fetch immutable document
+  // ---------------------------------------------------------------------------
 
-
-  // Organisation context (first membership is enough for MVP)
-  const { data: memberships, error: membershipErr } = await supabase
-    .from('organisation_members')
-    .select('organisation_id')
-    .limit(1)
-
-  if (membershipErr) redirect('/')
-  const organisationId = memberships?.[0]?.organisation_id
-  if (!organisationId) redirect('/onboarding/create-organisation')
-
-  const membership = await requireMember(organisationId)
-  if (!membership.ok) redirect('/')
-
-  // Fetch doc (single immutable version row)
   const { data: document, error } = await supabase
     .from('legal_documents')
     .select(
@@ -83,21 +85,27 @@ if (!user) redirect('/auth/login')
   if (error || !document) notFound()
 
   const status =
-  document.legal_documents_current?.[0]?.status ?? 'archived'
+    document.legal_documents_current?.[0]?.status ?? 'archived'
 
+  // ---------------------------------------------------------------------------
+  // Acceptance state (exact version + hash)
+  // ---------------------------------------------------------------------------
 
-  // Acceptance state for *this exact version*
   const acceptanceEvents = await getOrganisationAcceptanceEvents(organisationId)
-  const acceptance = acceptanceEvents.find(
-  (e) =>
-    e.document_id === document.id &&
-    e.content_hash === document.content_hash
-)
 
+  const acceptance = acceptanceEvents.find(
+    (e) =>
+      e.document_id === document.id &&
+      e.content_hash === document.content_hash
+  )
 
   const isAccepted = Boolean(acceptance)
   const acceptedOn = formatDate(acceptance?.accepted_at)
   const acceptedDaysAgo = daysSince(acceptance?.accepted_at)
+
+  // ---------------------------------------------------------------------------
+  // Render
+  // ---------------------------------------------------------------------------
 
   return (
     <main className="py-10">
@@ -108,7 +116,6 @@ if (!user) redirect('/auth/login')
             <h1 className="text-2xl font-semibold text-slate-900">
               {document.name}
             </h1>
-
             <Badge variant="secondary">{status}</Badge>
           </div>
 
@@ -118,9 +125,22 @@ if (!user) redirect('/auth/login')
           </p>
 
           <p className="text-xs text-slate-500">
-            Platform-issued document. Accepted versions are cryptographically bound and immutable.
+            Platform-issued document. Accepted versions are cryptographically
+            bound and immutable.
           </p>
         </header>
+
+        {/* Actions */}
+        <div>
+          <a
+            href={`/api/legal/documents/${document.id}/pdf`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm text-slate-600 underline hover:text-slate-900"
+          >
+            Download PDF
+          </a>
+        </div>
 
         {/* Acceptance status */}
         <Card>
@@ -140,7 +160,9 @@ if (!user) redirect('/auth/login')
 
                 <p className="text-sm text-slate-700">
                   Accepted on <strong>{acceptedOn}</strong>
-                  {acceptedDaysAgo !== null ? <> · {acceptedDaysAgo} days ago</> : null}
+                  {acceptedDaysAgo !== null
+                    ? <> · {acceptedDaysAgo} days ago</>
+                    : null}
                 </p>
               </>
             ) : (
@@ -150,7 +172,6 @@ if (!user) redirect('/auth/login')
                 </p>
 
                 <AcceptDocumentsButton organisationId={organisationId} />
-
               </>
             )}
           </CardContent>
@@ -159,7 +180,9 @@ if (!user) redirect('/auth/login')
         {/* Document text */}
         <Card>
           <CardHeader>
-            <h2 className="text-sm font-semibold">Document text (read-only)</h2>
+            <h2 className="text-sm font-semibold">
+              Document text (read-only)
+            </h2>
           </CardHeader>
 
           <Separator />
@@ -171,7 +194,9 @@ if (!user) redirect('/auth/login')
 
             <div className="text-xs text-slate-500 space-y-1">
               <p>Content hash (SHA-256):</p>
-              <p className="font-mono break-all">{document.content_hash}</p>
+              <p className="font-mono break-all">
+                {document.content_hash}
+              </p>
             </div>
           </CardContent>
         </Card>

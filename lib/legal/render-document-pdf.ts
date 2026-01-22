@@ -1,5 +1,5 @@
 // lib/legal/render-document-pdf.ts
-// lib/legal/render-document-pdf.ts
+
 import 'server-only'
 
 import path from 'path'
@@ -38,18 +38,34 @@ export async function renderSimpleDocumentPdf({
 }): Promise<Buffer> {
   const doc = new PDFDocument({ margin: 50 })
 
-  // 🔒 Register fonts immediately
-  doc.registerFont('Inter', FONT_REGULAR)
-  doc.registerFont('InterSemiBold', FONT_SEMIBOLD)
-  doc.font('Inter')
-
   const chunks: Buffer[] = []
-  doc.on('data', (chunk: Buffer) => chunks.push(chunk))
 
-  doc.font('InterSemiBold').fontSize(18).text(title)
+  const done = new Promise<Buffer>((resolve, reject) => {
+    doc.on('data', (chunk) => chunks.push(chunk))
+    doc.on('end', () => resolve(Buffer.concat(chunks)))
+    doc.on('error', reject)
+  })
+
+  // ── Fonts (with safe fallback) ───────────────────────────
+
+  try {
+    doc.registerFont('Inter', FONT_REGULAR)
+    doc.registerFont('InterSemiBold', FONT_SEMIBOLD)
+    doc.font('Inter')
+  } catch {
+    // Fallback to built-in font if files are missing
+    doc.font('Helvetica')
+  }
+
+  // ── CONTENT ──────────────────────────────────────────────
+
+  doc.fontSize(18).font('InterSemiBold').text(title)
   doc.moveDown(0.5)
 
-  doc.font('Inter').fontSize(10).fillColor('#555')
+  doc
+    .fontSize(10)
+    .fillColor('#555')
+    .font('Inter')
     .text(
       `Version ${version}${
         publishedAt
@@ -59,9 +75,11 @@ export async function renderSimpleDocumentPdf({
     )
 
   doc.moveDown()
-  doc.fillColor('#000').fontSize(11).text(content)
+
+  doc.fontSize(11).fillColor('#000').text(content)
 
   doc.end()
-  return Buffer.concat(chunks)
+
+  return done
 }
 
