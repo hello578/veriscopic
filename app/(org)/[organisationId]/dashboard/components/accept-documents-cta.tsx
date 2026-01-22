@@ -18,12 +18,10 @@ type AcceptedDocument = {
 
 export function AcceptDocumentsCTA({
   organisationId,
-  userId,
   acceptedOn,
   acceptedDocuments = [],
 }: {
   organisationId: string
-  userId: string
   acceptedOn?: string | null
   acceptedDocuments?: AcceptedDocument[]
 }) {
@@ -126,7 +124,7 @@ export function AcceptDocumentsCTA({
         disabled={isPending}
         onClick={() =>
           startTransition(async () => {
-            await acceptCurrentPlatformDocuments(organisationId, userId)
+             await acceptCurrentPlatformDocuments(organisationId)
             router.refresh()
           })
         }

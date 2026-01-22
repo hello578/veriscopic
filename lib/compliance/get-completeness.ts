@@ -69,10 +69,10 @@ export async function getCompleteness(
   /* Status logic (descriptive only)                                          */
   /* ---------------------------------------------------------------------- */
 
-  let status: CompletenessResult['status'] = 'complete'
+  let status: CompletenessResult['status'] = 'strong'
 
   if (missingDocs.length > 0 || !hasAISystems) {
-    status = 'partial'
+    status = 'developing'
   }
 
   if (

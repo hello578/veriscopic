@@ -52,7 +52,6 @@ if (!user) redirect('/auth/login')
   const { data: memberships, error: membershipErr } = await supabase
     .from('organisation_members')
     .select('organisation_id')
-    .eq('user_id', user.id)
     .limit(1)
 
   if (membershipErr) redirect('/')

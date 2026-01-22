@@ -1,5 +1,10 @@
 // lib/legal/completeness.ts
-import type { CurrentDocument } from './read-documents'
+// lib/legal/completeness.ts
+
+type DocWithStatus = {
+  name: string
+  acceptanceStatus?: 'accepted' | 'missing'
+}
 
 const REQUIRED = [
   'Platform Terms',
@@ -12,24 +17,26 @@ export function computeCompleteness({
   hasAISystems,
   hasAccountability,
 }: {
-  currentDocs: (CurrentDocument & { acceptanceStatus?: string })[]
+  currentDocs: DocWithStatus[]
   hasAISystems: boolean
   hasAccountability: boolean
 }) {
   const missingDocs: string[] = []
-  const outdatedDocs: string[] = []
 
   for (const name of REQUIRED) {
     const doc = currentDocs.find((d) => d.name === name)
-    if (!doc) missingDocs.push(name)
-    else if (doc.acceptanceStatus === 'outdated')
-      outdatedDocs.push(name)
+    if (!doc || doc.acceptanceStatus !== 'accepted') {
+      missingDocs.push(name)
+    }
   }
 
   let status: 'strong' | 'developing' | 'incomplete' = 'strong'
-  if (missingDocs.length || outdatedDocs.length || !hasAISystems)
+
+  if (!currentDocs.length) {
+    status = 'incomplete'
+  } else if (missingDocs.length || !hasAISystems || !hasAccountability) {
     status = 'developing'
-  if (!currentDocs.length) status = 'incomplete'
+  }
 
   return {
     status,
@@ -38,9 +45,6 @@ export function computeCompleteness({
         n.toLowerCase().replace(/\s+/g, '-')
       ),
       missingDocs: missingDocs.map((n) =>
-        n.toLowerCase().replace(/\s+/g, '-')
-      ),
-      outdatedDocs: outdatedDocs.map((n) =>
         n.toLowerCase().replace(/\s+/g, '-')
       ),
       hasAISystems,

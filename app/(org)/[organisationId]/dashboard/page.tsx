@@ -1,5 +1,5 @@
 // app/(org)/[organisationId]/dashboard/page.tsx
-// app/(org)/[organisationId]/dashboard/page.tsx
+
 import { redirect } from 'next/navigation'
 import { requireMember, hasRole } from '@/lib/rbac/guards'
 import { supabaseServerRead } from '@/lib/supabase/server-read'
@@ -39,6 +39,9 @@ export default async function OrganisationDashboardPage({
 }) {
   const { organisationId } = await params
 
+  // --------------------------------------------------
+  // Auth / membership
+  // --------------------------------------------------
   const result = await requireMember(organisationId)
   if (!result.ok) {
     redirect(result.reason === 'unauthenticated' ? '/auth/login' : '/')
@@ -49,16 +52,27 @@ export default async function OrganisationDashboardPage({
 
   const supabase = await supabaseServerRead()
 
+  // --------------------------------------------------
+  // Data fetch
+  // --------------------------------------------------
   const [{ data: orgRow }, currentDocs, acceptanceEvents] = await Promise.all([
-    supabase.from('organisations').select('features').eq('id', ctx.org.id).single(),
+    supabase
+      .from('organisations')
+      .select('features')
+      .eq('id', ctx.org.id)
+      .single(),
     getCurrentPlatformDocuments(),
     getOrganisationAcceptanceEvents(ctx.org.id),
   ])
 
   const features = orgRow?.features ?? {}
 
-  // accepted by document_id
-  const acceptedDocumentIds = new Set(acceptanceEvents.map((e) => e.document_id))
+  // --------------------------------------------------
+  // Acceptance state (document_id based)
+  // --------------------------------------------------
+  const acceptedDocumentIds = new Set(
+    acceptanceEvents.map((e) => e.document_id)
+  )
 
   const docsWithStatus = currentDocs.map((doc) => ({
     ...doc,
@@ -80,21 +94,42 @@ export default async function OrganisationDashboardPage({
       )
     : null
 
-  const completeness = computeCompleteness({
+  // --------------------------------------------------
+  // Completeness (v1.0)
+  // --------------------------------------------------
+  const rawCompleteness = computeCompleteness({
     currentDocs: docsWithStatus,
     hasAISystems: false,
     hasAccountability: true,
   })
 
+  /**
+   * UI adapter:
+   * Drift v1.0 does NOT support outdated docs,
+   * but the card expects the key.
+   */
+  const completeness = {
+    ...rawCompleteness,
+    breakdown: {
+      ...rawCompleteness.breakdown,
+      outdatedDocs: [], // v1.0 invariant
+    },
+  }
+
   const canEditFeatures = hasRole(ctx, ['owner', 'admin'])
 
-  const acceptedDocuments = acceptanceEvents.map((e: AcceptanceEvent) => ({
-    name: e.document_name,
-    version: e.version,
-    accepted_at: e.accepted_at,
-    content_hash: e.content_hash,
-  }))
+  const acceptedDocuments = acceptanceEvents.map(
+    (e: AcceptanceEvent) => ({
+      name: e.document_name,
+      version: e.version,
+      accepted_at: e.accepted_at,
+      content_hash: e.content_hash,
+    })
+  )
 
+  // --------------------------------------------------
+  // Render
+  // --------------------------------------------------
   return (
     <main className="py-10">
       <div className="mx-auto max-w-4xl px-6 space-y-14">
@@ -104,16 +139,23 @@ export default async function OrganisationDashboardPage({
           role={ctx.role ?? 'member'}
         />
 
+        {/* GOVERNANCE STATUS */}
         <section className="space-y-4">
-          <h2 className="text-sm font-semibold text-slate-900">Governance status</h2>
+          <h2 className="text-sm font-semibold text-slate-900">
+            Governance status
+          </h2>
+
           <ComplianceCompletenessCard
             completeness={completeness}
             organisationId={ctx.org.id}
           />
         </section>
 
+        {/* EVIDENCE OUTPUTS */}
         <section className="space-y-6">
-          <h2 className="text-sm font-semibold text-slate-900">Evidence outputs</h2>
+          <h2 className="text-sm font-semibold text-slate-900">
+            Evidence outputs
+          </h2>
 
           <div className="grid gap-6 lg:grid-cols-3">
             <OrganisationOverview name={ctx.org.name} memberCount={1} />
@@ -131,8 +173,11 @@ export default async function OrganisationDashboardPage({
           </div>
         </section>
 
+        {/* GOVERNANCE INPUTS */}
         <section className="space-y-6">
-          <h2 className="text-sm font-semibold text-slate-900">Governance inputs</h2>
+          <h2 className="text-sm font-semibold text-slate-900">
+            Governance inputs
+          </h2>
 
           <LegalStatusTable
             rows={docsWithStatus.map((doc) => ({
@@ -146,7 +191,6 @@ export default async function OrganisationDashboardPage({
           {canEditFeatures && !hasAcceptedAllDocs && (
             <AcceptDocumentsCTA
               organisationId={ctx.org.id}
-              userId={ctx.user.id}
               acceptedOn={acceptedOn}
               acceptedDocuments={acceptedDocuments}
             />
@@ -155,15 +199,21 @@ export default async function OrganisationDashboardPage({
           <ResponsibilityMap />
         </section>
 
+        {/* AUDIT */}
         <section className="space-y-3">
-          <h2 className="text-sm font-semibold text-slate-900">Audit & traceability</h2>
+          <h2 className="text-sm font-semibold text-slate-900">
+            Audit & traceability
+          </h2>
 
           <EvidenceLog
             organisationId={ctx.org.id}
-            events={acceptanceEvents.map((e) => ({ accepted_at: e.accepted_at }))}
+            events={acceptanceEvents.map((e) => ({
+              accepted_at: e.accepted_at,
+            }))}
           />
         </section>
       </div>
     </main>
   )
 }
+
