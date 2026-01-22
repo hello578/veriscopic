@@ -1,20 +1,20 @@
 // app/(org)/[organisationId]/dashboard/components/legal-status-table.tsx
-
 'use client'
 
 import Link from 'next/link'
-import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardHeader, CardContent } from '@/components/ui/card'
 import { ArrowRight, AlertTriangle, CheckCircle2 } from 'lucide-react'
+
+export type LegalStatus = 'accepted' | 'missing' | 'outdated'
 
 export type LegalStatusRow = {
   id: string
   name: string
   version: string
-  isCurrent: boolean
-  status: 'accepted' | 'pending' | 'outdated'
+  status: LegalStatus
 }
+
 
 export function LegalStatusTable({
   rows = [],
@@ -39,79 +39,68 @@ export function LegalStatusTable({
           </div>
         ) : (
           <div className="divide-y divide-slate-200">
-            {rows.map((row) => {
-              const isOutdated = row.status === 'outdated'
-              const isAccepted = row.status === 'accepted'
+          {rows.map((row) => {
+  const isAccepted = row.status === 'accepted'
+  const isOutdated = row.status === 'outdated'
+  const isPending = row.status === 'missing'
 
-              return (
-                <Link
-                  key={row.id}
-                  href={`/legal/documents/${row.id}`}
-                  className={cn(
-                    'group flex items-center justify-between gap-4 py-4 transition',
-                    'hover:bg-slate-50'
-                  )}
-                >
-                  {/* Left */}
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-slate-900">
-                      {row.name}{' '}
-                      <span className="text-slate-500">
-                        v{row.version}
-                      </span>
-                    </p>
+  return (
+    <Link
+      key={row.id}
+      href={`/legal/documents/${row.id}`}
+      className="group flex items-center justify-between gap-4 py-4 hover:bg-slate-50"
+    >
+      {/* Left */}
+      <div className="space-y-1">
+        <p className="text-sm font-medium text-slate-900">
+          {row.name}{' '}
+          <span className="text-slate-500">v{row.version}</span>
+        </p>
 
-                    {isOutdated && (
-                      <div className="flex items-center gap-1 text-xs text-amber-700">
-                        <AlertTriangle className="h-3.5 w-3.5" />
-                        A newer version is available. Your previous acceptance
-                        remains recorded.
-                      </div>
-                    )}
-                  </div>
+        {isOutdated && (
+          <div className="flex items-center gap-1 text-xs text-amber-700">
+            <AlertTriangle className="h-3.5 w-3.5" />
+            A newer version is available.
+          </div>
+        )}
+      </div>
 
-                  {/* Right */}
-                  <div className="flex items-center gap-3">
-                    {isAccepted && (
-                      <Badge variant="secondary" className="gap-1">
-                        <CheckCircle2 className="h-3.5 w-3.5" />
-                        Accepted
-                      </Badge>
-                    )}
+      {/* Right */}
+      <div className="flex items-center gap-3">
+        {isAccepted && (
+          <Badge variant="secondary" className="gap-1">
+            <CheckCircle2 className="h-3.5 w-3.5" />
+            Accepted
+          </Badge>
+        )}
 
-                    {row.status === 'pending' && (
-                      <Badge
-                        variant="outline"
-                        className="text-amber-700 border-amber-300"
-                      >
-                        Pending
-                      </Badge>
-                    )}
+        {isPending && (
+          <Badge
+            variant="outline"
+            className="text-amber-700 border-amber-300"
+          >
+            Action required
+          </Badge>
+        )}
 
-                    {isOutdated && (
-                      <Badge
-                        variant="outline"
-                        className="text-amber-700 border-amber-300"
-                      >
-                        Action required
-                      </Badge>
-                    )}
+        {isOutdated && (
+          <Badge
+            variant="outline"
+            className="text-amber-700 border-amber-300"
+          >
+            Update required
+          </Badge>
+        )}
 
-                    <div className="flex items-center gap-1 text-xs text-slate-500">
-                      <span className="hidden sm:inline">
-                        View document
-                      </span>
-                      <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-slate-600 transition" />
-                    </div>
-                  </div>
-                </Link>
-              )
-            })}
+        <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-slate-600 transition" />
+      </div>
+    </Link>
+  )
+})}
+
           </div>
         )}
       </CardContent>
     </Card>
   )
 }
-
-

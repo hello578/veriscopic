@@ -1,5 +1,4 @@
 // app/dashboard/page.tsx
-// app/dashboard/page.tsx
 
 import { redirect } from "next/navigation"
 import { supabaseServerRead } from "@/lib/supabase/server-read"

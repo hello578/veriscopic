@@ -1,3 +1,5 @@
+// lib/supabase/server-service.ts
+
 import { createClient } from '@supabase/supabase-js'
 
 export function supabaseService() {

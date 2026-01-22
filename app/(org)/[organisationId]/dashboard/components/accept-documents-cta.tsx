@@ -1,10 +1,11 @@
 
 // app/(org)/[organisationId]/dashboard/components/accept-documents-cta.tsx
-// app/(org)/[organisationId]/dashboard/components/accept-documents-cta.tsx
 
+// app/(org)/[organisationId]/dashboard/components/accept-documents-cta.tsx
 'use client'
 
 import { useMemo, useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { acceptCurrentPlatformDocuments } from '@/lib/legal/actions/accept-platform-documents'
 
@@ -17,13 +18,16 @@ type AcceptedDocument = {
 
 export function AcceptDocumentsCTA({
   organisationId,
+  userId,
   acceptedOn,
   acceptedDocuments = [],
 }: {
   organisationId: string
+  userId: string
   acceptedOn?: string | null
   acceptedDocuments?: AcceptedDocument[]
 }) {
+  const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [showDetails, setShowDetails] = useState(false)
 
@@ -41,8 +45,6 @@ export function AcceptDocumentsCTA({
     })
   }, [acceptedOn])
 
-  /* ───────── Accepted (immutable) ───────── */
-
   if (acceptedOnLabel) {
     return (
       <section className="rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4 space-y-4">
@@ -57,8 +59,7 @@ export function AcceptDocumentsCTA({
           </p>
 
           <p className="text-xs text-emerald-700">
-            This record is immutable and forms part of your governance audit
-            trail.
+            This record is immutable and forms part of your governance audit trail.
           </p>
         </div>
 
@@ -76,42 +77,37 @@ export function AcceptDocumentsCTA({
               Recorded documents
             </p>
 
-            {acceptedDocuments.length === 0 && (
+            {acceptedDocuments.length === 0 ? (
               <p className="text-xs text-slate-500">
-                Acceptance has been recorded. Detailed document metadata will
-                appear once document version linking is finalised.
+                Acceptance has been recorded. Document metadata will appear once document version
+                linking is available in the export view.
               </p>
+            ) : (
+              acceptedDocuments.map((doc) => (
+                <div
+                  key={`${doc.content_hash}-${doc.accepted_at}`}
+                  className="space-y-0.5 border-b border-slate-100 pb-2 last:border-b-0 last:pb-0"
+                >
+                  <p className="text-sm font-medium text-slate-900">
+                    {doc.name}{' '}
+                    <span className="text-slate-500">v{doc.version}</span>
+                  </p>
+
+                  <p className="text-xs text-slate-600">
+                    Accepted on {new Date(doc.accepted_at).toLocaleString()}
+                  </p>
+
+                  <p className="text-xs font-mono text-slate-500">
+                    Hash {doc.content_hash.slice(0, 10)}…
+                  </p>
+                </div>
+              ))
             )}
-
-            {acceptedDocuments.map((doc) => (
-              <div
-                key={doc.content_hash}
-                className="space-y-0.5 border-b border-slate-100 pb-2 last:border-b-0 last:pb-0"
-              >
-                <p className="text-sm font-medium text-slate-900">
-                  {doc.name}{' '}
-                  <span className="text-slate-500">
-                    v{doc.version}
-                  </span>
-                </p>
-
-                <p className="text-xs text-slate-600">
-                  Accepted on{' '}
-                  {new Date(doc.accepted_at).toLocaleString()}
-                </p>
-
-                <p className="text-xs font-mono text-slate-500">
-                  Hash {doc.content_hash.slice(0, 10)}…
-                </p>
-              </div>
-            ))}
           </div>
         )}
       </section>
     )
   }
-
-  /* ───────── CTA (pre-acceptance) ───────── */
 
   return (
     <section className="rounded-xl border border-slate-200 bg-white px-5 py-5 space-y-4">
@@ -121,17 +117,17 @@ export function AcceptDocumentsCTA({
         </p>
 
         <p className="text-xs text-slate-600 leading-relaxed">
-          You must accept the current platform legal documents to complete
-          governance setup. Acceptance is recorded immutably and provides
-          auditable evidence of acknowledgement.
+          You must accept the current platform legal documents to complete governance setup.
+          Acceptance is recorded immutably and provides auditable evidence of acknowledgement.
         </p>
       </div>
 
       <Button
         disabled={isPending}
         onClick={() =>
-          startTransition(() => {
-            acceptCurrentPlatformDocuments(organisationId)
+          startTransition(async () => {
+            await acceptCurrentPlatformDocuments(organisationId, userId)
+            router.refresh()
           })
         }
       >

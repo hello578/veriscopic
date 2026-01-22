@@ -1,80 +1,61 @@
 // lib/legal/actions/accept-platform-documents.ts
 
-
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { supabaseServerWrite } from '@/lib/supabase/server-write'
+import { supabaseService } from '@/lib/supabase/server-service'
+
+type CurrentRow = {
+  id: string
+  legal_document: { content_hash: string } | null
+}
 
 export async function acceptCurrentPlatformDocuments(
-  organisationId: string
+  organisationId: string,
+  userId: string
 ) {
-  const supabase = await supabaseServerWrite()
-
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser()
-
-  if (userError || !user) {
-    throw new Error('Unauthenticated')
+  if (!organisationId || !userId) {
+    throw new Error('Missing organisationId or userId')
   }
 
-  /**
-   * Fetch active platform documents
-   * FK is explicitly disambiguated
-   */
-  const { data: currentDocs, error: docsError } = await supabase
+  const supabase = supabaseService()
+
+  // Pull active platform documents + their immutable content_hash
+  const { data, error } = await supabase
     .from('legal_documents_current')
-    .select(`
+    .select(
+      `
       id,
-      legal_documents:legal_documents!legal_documents_current_doc_fk (
+      legal_document:legal_documents!legal_documents_current_id_fkey (
         content_hash
       )
-    `)
+    `
+    )
     .eq('active', true)
 
-  if (docsError) {
-    console.error('[acceptCurrentPlatformDocuments]', docsError)
-    throw docsError
-  }
+  if (error) throw error
+  if (!data || data.length === 0) return
 
-  if (!currentDocs || currentDocs.length === 0) return
+  const rows = data as unknown as CurrentRow[]
 
-  /**
-   * Build immutable acceptance records
-   */
-  const inserts = currentDocs
-    .map((row: any) => {
-      const contentHash = row.legal_documents?.content_hash
-      if (!contentHash) return null
+  for (const row of rows) {
+    const contentHash = row.legal_document?.content_hash
+    if (!contentHash) continue
 
-      return {
+    const { error: insertError } = await supabase
+      .from('terms_acceptance')
+      .insert({
         organisation_id: organisationId,
-        user_id: user.id,
-        document_id: row.id,
+        user_id: userId,
+        document_id: row.id, // current pointer id == immutable legal_documents.id
         content_hash: contentHash,
-        accepted_at: new Date().toISOString(),
-      }
-    })
-    .filter(Boolean)
+      })
 
-  if (inserts.length === 0) return
-
-  /**
-   * Insert immutably
-   * Ignore duplicate acceptance (unique constraint)
-   */
-  const { error } = await supabase
-    .from('terms_acceptance')
-    .insert(inserts)
-
-  if (error && error.code !== '23505') {
-    throw error
+    // 23505 = unique violation → already accepted → SUCCESS
+    if (insertError && insertError.code !== '23505') {
+      throw insertError
+    }
   }
 
-  /**
-   * Ensure dashboard reflects acceptance immediately
-   */
   revalidatePath(`/${organisationId}/dashboard`)
 }

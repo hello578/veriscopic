@@ -8,6 +8,8 @@ _Last updated: 2026-01-21_
 
 Veriscopic Drift v1.0 is now a **working, credible AI governance evidence system**.
 
+It records what an organisation declares and what the platform issues, not whether those declarations are sufficient or lawful.
+
 It produces:
 - Deterministic, audit-ready Evidence Packs
 - Cryptographically verifiable JSON + PDF artefacts
@@ -231,6 +233,8 @@ Prefer:
 - Declarative language
 - Deterministic outputs
 - Explicit disclaimers
+
+Any change that alters the meaning of recorded evidence requires a new Drift version, not a patch.
 
 ---
 

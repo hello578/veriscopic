@@ -1,24 +1,32 @@
+
 // middleware.ts
 // middleware.ts
-import { createServerClient } from "@supabase/ssr"
-import { NextResponse } from "next/server"
-import type { NextRequest } from "next/server"
+import { createServerClient } from '@supabase/ssr'
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
 
 export async function middleware(req: NextRequest) {
   const { pathname, origin } = req.nextUrl
 
-  // ✅ Public routes (NEVER block these)
+  /**
+   * Public routes – NEVER block these
+   */
   if (
-    pathname === "/" ||
-    pathname.startsWith("/auth") ||
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/favicon")
+    pathname === '/' ||
+    pathname.startsWith('/auth') ||
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/favicon') ||
+    pathname === '/robots.txt' ||
+    pathname === '/sitemap.xml'
   ) {
     return NextResponse.next()
   }
 
   const res = NextResponse.next()
 
+  /**
+   * Create Supabase SSR client with full cookie support
+   */
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -36,7 +44,9 @@ export async function middleware(req: NextRequest) {
     }
   )
 
-  // 🔐 THIS IS THE FIX
+  /**
+   * Auth check (server-verified)
+   */
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -48,6 +58,12 @@ export async function middleware(req: NextRequest) {
   return res
 }
 
+/**
+ * Run middleware on all routes except Next internals & static assets.
+ * Route-level exclusions are handled inside middleware.
+ */
 export const config = {
-  matcher: ["/app/:path*"],
+  matcher: [
+    '/((?!_next|favicon.ico|robots.txt|sitemap.xml).*)',
+  ],
 }

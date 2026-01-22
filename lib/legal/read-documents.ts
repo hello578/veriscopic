@@ -1,47 +1,50 @@
 
 // lib/legal/read-documents.ts
-// lib/legal/read-documents.ts
-import 'server-only'
 
 import { supabaseServerRead } from '@/lib/supabase/server-read'
 
-export type CurrentDocument = {
+type CurrentRow = {
   id: string
-  name: string
-  jurisdiction: string
-  status: string
-  active: boolean
-  version: string
+  legal_document: {
+    id: string
+    name: string
+    version: string
+    document_type: string
+    content_hash: string
+  } | null
 }
 
-export async function getCurrentPlatformDocuments(): Promise<CurrentDocument[]> {
+export async function getCurrentPlatformDocuments() {
   const supabase = await supabaseServerRead()
 
   const { data, error } = await supabase
     .from('legal_documents_current')
-    .select(`
+    .select(
+      `
       id,
-      name,
-      jurisdiction,
-      status,
-      active,
-      legal_documents:legal_documents!legal_documents_current_doc_fk (
-        version
+      legal_document:legal_documents!legal_documents_current_id_fkey (
+        id,
+        name,
+        version,
+        document_type,
+        content_hash
       )
-    `)
+    `
+    )
     .eq('active', true)
 
-  if (error) {
-    console.error('[getCurrentPlatformDocuments]', error)
-    throw error
-  }
+  if (error) throw error
+  if (!data) return []
 
-  return (data ?? []).map((row) => ({
-    id: row.id,
-    name: row.name,
-    jurisdiction: row.jurisdiction,
-    status: row.status,
-    active: row.active,
-    version: row.legal_documents?.[0]?.version ?? '—',
-  }))
+  const rows = data as unknown as CurrentRow[]
+
+  return rows
+    .filter((row) => row.legal_document)
+    .map((row) => ({
+      id: row.legal_document!.id,
+      name: row.legal_document!.name,
+      version: row.legal_document!.version,
+      document_type: row.legal_document!.document_type,
+      content_hash: row.legal_document!.content_hash,
+    }))
 }

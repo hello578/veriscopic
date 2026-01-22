@@ -63,7 +63,7 @@ export function SiteHeader() {
             alt="Veriscopic"
             width={36}
             height={36}
-            priority
+            unoptimized
           />
           <span className="text-base font-semibold text-slate-900">
             Veriscopic

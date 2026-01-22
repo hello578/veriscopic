@@ -1,6 +1,7 @@
 
 // app/legal/documents/[documentId]/page.tsx 
 
+
 import { notFound, redirect } from 'next/navigation'
 import { supabaseServerRead } from '@/lib/supabase/server-read'
 import { requireMember } from '@/lib/rbac/guards'
@@ -8,14 +9,10 @@ import { requireMember } from '@/lib/rbac/guards'
 import { Card, CardHeader, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { AlertTriangle, CheckCircle2 } from 'lucide-react'
+import { CheckCircle2 } from 'lucide-react'
 
 import { AcceptDocumentsButton } from '@/components/legal/accept-documents-button'
 import { getOrganisationAcceptanceEvents } from '@/lib/legal/read-acceptance'
-
-/* -------------------------------------------------------------------------- */
-/* Helpers                                                                    */
-/* -------------------------------------------------------------------------- */
 
 function formatDate(iso?: string | null) {
   if (!iso) return null
@@ -35,11 +32,6 @@ function daysSince(iso?: string | null) {
   const now = Date.now()
   return Math.floor((now - then) / (1000 * 60 * 60 * 24))
 }
-
-/* -------------------------------------------------------------------------- */
-/* Page                                                                        */
-/* -------------------------------------------------------------------------- */
-
 export default async function LegalDocumentPage({
   params,
 }: {
@@ -47,34 +39,30 @@ export default async function LegalDocumentPage({
 }) {
   const { documentId } = await params
 
+
   const supabase = await supabaseServerRead()
 
-  /* ---------------------------------------------------------------------- */
-  /* Auth + organisation context                                            */
-  /* ---------------------------------------------------------------------- */
+  // Auth
+  const { data: userRes } = await supabase.auth.getUser()
+const user = userRes?.user
+if (!user) redirect('/auth/login')
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
 
-  if (!session) redirect('/auth/login')
-
-  const { data: memberships } = await supabase
+  // Organisation context (first membership is enough for MVP)
+  const { data: memberships, error: membershipErr } = await supabase
     .from('organisation_members')
     .select('organisation_id')
-    .eq('user_id', session.user.id)
+    .eq('user_id', user.id)
     .limit(1)
 
+  if (membershipErr) redirect('/')
   const organisationId = memberships?.[0]?.organisation_id
   if (!organisationId) redirect('/onboarding/create-organisation')
 
   const membership = await requireMember(organisationId)
   if (!membership.ok) redirect('/')
 
-  /* ---------------------------------------------------------------------- */
-  /* Fetch document                                                          */
-  /* ---------------------------------------------------------------------- */
-
+  // Fetch doc (single immutable version row)
   const { data: document, error } = await supabase
     .from('legal_documents')
     .select(
@@ -84,9 +72,10 @@ export default async function LegalDocumentPage({
       version,
       content,
       content_hash,
-      published_at,
-      status,
-      jurisdiction
+      jurisdiction,
+      legal_documents_current (
+        status
+      )
     `
     )
     .eq('id', documentId)
@@ -94,25 +83,22 @@ export default async function LegalDocumentPage({
 
   if (error || !document) notFound()
 
-  /* ---------------------------------------------------------------------- */
-  /* Acceptance state                                                        */
-  /* ---------------------------------------------------------------------- */
+  const status =
+  document.legal_documents_current?.[0]?.status ?? 'archived'
 
+
+  // Acceptance state for *this exact version*
   const acceptanceEvents = await getOrganisationAcceptanceEvents(organisationId)
   const acceptance = acceptanceEvents.find(
-    (e) => e.document_id === document.id
-  )
+  (e) =>
+    e.document_id === document.id &&
+    e.content_hash === document.content_hash
+)
+
 
   const isAccepted = Boolean(acceptance)
-  const isOutdated =
-    isAccepted && acceptance?.content_hash !== document.content_hash
-
   const acceptedOn = formatDate(acceptance?.accepted_at)
   const acceptedDaysAgo = daysSince(acceptance?.accepted_at)
-
-  /* ---------------------------------------------------------------------- */
-  /* Render                                                                  */
-  /* ---------------------------------------------------------------------- */
 
   return (
     <main className="py-10">
@@ -124,16 +110,16 @@ export default async function LegalDocumentPage({
               {document.name}
             </h1>
 
-            {document.status === 'active' && (
-              <Badge className="bg-emerald-100 text-emerald-700">
-                Active
-              </Badge>
-            )}
+            <Badge variant="secondary">{status}</Badge>
           </div>
 
           <p className="text-sm text-slate-600">
             Version {document.version}
-            {document.jurisdiction && <> · {document.jurisdiction}</>}
+            {document.jurisdiction ? <> · {document.jurisdiction}</> : null}
+          </p>
+
+          <p className="text-xs text-slate-500">
+            Platform-issued document. Accepted versions are cryptographically bound and immutable.
           </p>
         </header>
 
@@ -153,32 +139,10 @@ export default async function LegalDocumentPage({
                   Accepted
                 </div>
 
-                <p className="text-sm">
+                <p className="text-sm text-slate-700">
                   Accepted on <strong>{acceptedOn}</strong>
-                  {acceptedDaysAgo !== null && (
-                    <> · {acceptedDaysAgo} days ago</>
-                  )}
+                  {acceptedDaysAgo !== null ? <> · {acceptedDaysAgo} days ago</> : null}
                 </p>
-
-                {isOutdated && (
-                  <>
-                    <div className="rounded-md border border-amber-200 bg-amber-50 p-4">
-                      <div className="flex items-center gap-2 font-medium text-amber-900">
-                        <AlertTriangle className="h-4 w-4" />
-                        A newer version is available
-                      </div>
-                      <p className="mt-1 text-sm text-amber-800">
-                        You accepted v{acceptance?.version}. Current version is
-                        v{document.version}.
-                      </p>
-                      <p className="mt-1 text-xs text-amber-700">
-                        Your previous acceptance remains recorded.
-                      </p>
-                    </div>
-
-                    <AcceptDocumentsButton documentId={document.id} />
-                  </>
-                )}
               </>
             ) : (
               <>
@@ -186,7 +150,8 @@ export default async function LegalDocumentPage({
                   This document has not yet been accepted by your organisation.
                 </p>
 
-                <AcceptDocumentsButton documentId={document.id} />
+                <AcceptDocumentsButton organisationId={organisationId} />
+
               </>
             )}
           </CardContent>
@@ -195,17 +160,20 @@ export default async function LegalDocumentPage({
         {/* Document text */}
         <Card>
           <CardHeader>
-            <h2 className="text-sm font-semibold">
-              Document text (read-only)
-            </h2>
+            <h2 className="text-sm font-semibold">Document text (read-only)</h2>
           </CardHeader>
 
           <Separator />
 
-          <CardContent className="pt-4">
+          <CardContent className="pt-4 space-y-4">
             <pre className="whitespace-pre-wrap break-words text-sm leading-relaxed text-slate-800">
               {document.content}
             </pre>
+
+            <div className="text-xs text-slate-500 space-y-1">
+              <p>Content hash (SHA-256):</p>
+              <p className="font-mono break-all">{document.content_hash}</p>
+            </div>
           </CardContent>
         </Card>
 
@@ -216,3 +184,4 @@ export default async function LegalDocumentPage({
     </main>
   )
 }
+

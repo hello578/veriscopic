@@ -29,10 +29,11 @@ export function DashboardHeader({
             <Image
               src="/assets/brand/veriscopic-mark-mono.png"
               alt="Veriscopic"
-              width={28}
-              height={28}
-              priority
+              width={32}
+              height={32}
+              unoptimized
             />
+
             <span className="text-sm font-semibold tracking-tight text-slate-900">
               Veriscopic
             </span>
