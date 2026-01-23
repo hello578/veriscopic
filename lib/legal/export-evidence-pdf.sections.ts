@@ -74,6 +74,8 @@ export function renderCover(opts: {
   doc.text(`Organisation ID: ${organisationId}`)
   doc.text(`Generated (UTC): ${toUtcDate(pack.generated_at)}`)
   doc.text(`Evidence Pack Version: ${pack.evidence_pack_version}`)
+  doc.text(`Declared AI systems: ${pack.ai_systems.length}`)
+
 
   hr(doc)
 

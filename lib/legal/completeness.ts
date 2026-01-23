@@ -1,6 +1,4 @@
 // lib/legal/completeness.ts
-// lib/legal/completeness.ts
-
 type DocWithStatus = {
   name: string
   acceptanceStatus?: 'accepted' | 'missing'
@@ -32,9 +30,16 @@ export function computeCompleteness({
 
   let status: 'strong' | 'developing' | 'incomplete' = 'strong'
 
-  if (!currentDocs.length) {
+  if (
+    !currentDocs.length ||
+    missingDocs.length === REQUIRED.length
+  ) {
     status = 'incomplete'
-  } else if (missingDocs.length || !hasAISystems || !hasAccountability) {
+  } else if (
+    missingDocs.length > 0 ||
+    !hasAISystems ||
+    !hasAccountability
+  ) {
     status = 'developing'
   }
 

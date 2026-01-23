@@ -71,16 +71,29 @@ export default async function OrganisationDashboardPage({
   // --------------------------------------------------
   // Data fetch (parallel)
   // --------------------------------------------------
-  const [{ data: orgRow }, currentDocs, acceptanceEvents] =
-    await Promise.all([
-      supabase
-        .from('organisations')
-        .select('features')
-        .eq('id', ctx.org.id)
-        .single(),
-      getCurrentPlatformDocuments(),
-      getOrganisationAcceptanceEvents(ctx.org.id),
-    ])
+  const [
+    { data: orgRow },
+    currentDocs,
+    acceptanceEvents,
+    { data: aiSystems },
+  ] = await Promise.all([
+    supabase
+      .from('organisations')
+      .select('features')
+      .eq('id', ctx.org.id)
+      .single(),
+
+    getCurrentPlatformDocuments(),
+
+    getOrganisationAcceptanceEvents(ctx.org.id),
+
+    // 🔹 Minimal AI systems check (existence only)
+    supabase
+      .from('ai_systems')
+      .select('id')
+      .eq('organisation_id', ctx.org.id)
+      .limit(1),
+  ])
 
   const features = orgRow?.features ?? {}
 
@@ -114,10 +127,12 @@ export default async function OrganisationDashboardPage({
   // --------------------------------------------------
   // Completeness (v1.0)
   // --------------------------------------------------
+  const hasAISystems = Boolean(aiSystems && aiSystems.length > 0)
+
   const rawCompleteness = computeCompleteness({
     currentDocs: docsWithStatus,
-    hasAISystems: false,
-    hasAccountability: true,
+    hasAISystems,
+    hasAccountability: true, // enforced org ownership model
   })
 
   const completeness = {
@@ -232,3 +247,4 @@ export default async function OrganisationDashboardPage({
     </main>
   )
 }
+
