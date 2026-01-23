@@ -65,20 +65,22 @@ export type EvidencePack = {
 /* Export Evidence Pack                                                        */
 /* -------------------------------------------------------------------------- */
 
-export async function exportEvidencePack(
-  organisationId: string
-): Promise<EvidencePack> {
+export async function exportEvidencePack(organisationId: string): Promise<EvidencePack> {
   const supabase = await supabaseServerRead()
 
   /* ------------------------------------------------------------------------ */
   /* Organisation                                                             */
   /* ------------------------------------------------------------------------ */
 
-  const { data: organisation } = await supabase
+  const { data: organisation, error: orgError } = await supabase
     .from('organisations')
     .select('id, name')
     .eq('id', organisationId)
     .single()
+
+  if (orgError) {
+    console.error('[exportEvidencePack] organisation query error:', orgError)
+  }
 
   if (!organisation) {
     throw new Error('Organisation not found')
@@ -88,42 +90,42 @@ export async function exportEvidencePack(
   /* Organisation audit events                                                 */
   /* ------------------------------------------------------------------------ */
 
-  const { data: events } = await supabase
+  const { data: events, error: eventsError } = await supabase
     .from('organisation_audit_events')
     .select('event_type, occurred_at, actor_user_id')
     .eq('organisation_id', organisationId)
     .order('occurred_at', { ascending: true })
 
+  if (eventsError) {
+    console.error('[exportEvidencePack] events query error:', eventsError)
+  }
+
   /* ------------------------------------------------------------------------ */
   /* Legal acceptance evidence                                                 */
   /* ------------------------------------------------------------------------ */
 
-  const { data: acceptanceRows, error: acceptanceError } =
-    await supabase
-      .from('terms_acceptance')
-      .select(
-        `
-        document_id,
-        accepted_at,
-        content_hash,
-        user_id,
-        legal_documents:legal_documents!terms_acceptance_document_id_fkey (
-          id,
-          name,
-          document_type,
-          version,
-          jurisdiction
-        )
+  const { data: acceptanceRows, error: acceptanceError } = await supabase
+    .from('terms_acceptance')
+    .select(
       `
+      document_id,
+      accepted_at,
+      content_hash,
+      user_id,
+      legal_documents:legal_documents!terms_acceptance_document_id_fkey (
+        id,
+        name,
+        document_type,
+        version,
+        jurisdiction
       )
-      .eq('organisation_id', organisationId)
-      .order('accepted_at', { ascending: true })
+    `
+    )
+    .eq('organisation_id', organisationId)
+    .order('accepted_at', { ascending: true })
 
   if (acceptanceError) {
-    console.error(
-      '[exportEvidencePack] acceptance query error:',
-      acceptanceError
-    )
+    console.error('[exportEvidencePack] acceptance query error:', acceptanceError)
     throw new Error(acceptanceError.message)
   }
 
@@ -131,7 +133,7 @@ export async function exportEvidencePack(
   /* AI systems registry                                                       */
   /* ------------------------------------------------------------------------ */
 
-  const { data: aiSystems } = await supabase
+  const { data: aiSystems, error: aiSystemsError } = await supabase
     .from('ai_systems')
     .select(
       `
@@ -140,16 +142,22 @@ export async function exportEvidencePack(
       system_owner,
       data_categories,
       lifecycle_status,
-      updated_at
+      updated_at,
+      created_at,
+      is_operational
     `
     )
     .eq('organisation_id', organisationId)
     .order('created_at', { ascending: true })
 
+  if (aiSystemsError) {
+    console.error('[exportEvidencePack] ai_systems query error:', aiSystemsError)
+  }
+
   const generatedAt = new Date().toISOString()
 
   /* ------------------------------------------------------------------------ */
-  /* Canonical pack (PRE-HASH)                                                  */
+  /* Canonical pack (PRE-HASH)                                                 */
   /* ------------------------------------------------------------------------ */
 
   const packCore: Omit<EvidencePack, 'integrity'> = {
@@ -192,14 +200,10 @@ export async function exportEvidencePack(
     ai_systems: (aiSystems ?? []).map((s) => ({
       name: s.name,
       purpose: s.purpose,
-      system_owner: s.system_owner,
-      data_categories: Array.isArray(s.data_categories)
-        ? s.data_categories
-        : [],
+      system_owner: s.system_owner ?? null,
+      data_categories: Array.isArray(s.data_categories) ? s.data_categories : [],
       lifecycle_status: s.lifecycle_status,
-      last_updated: s.updated_at
-        ? new Date(s.updated_at).toISOString()
-        : generatedAt,
+      last_updated: s.updated_at ? new Date(s.updated_at).toISOString() : generatedAt,
     })),
 
     ai_act_mapping: [

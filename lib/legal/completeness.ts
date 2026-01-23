@@ -1,14 +1,15 @@
 // lib/legal/completeness.ts
-type DocWithStatus = {
+
+export type DocWithStatus = {
   name: string
   acceptanceStatus?: 'accepted' | 'missing'
 }
 
-const REQUIRED = [
-  'Platform Terms',
-  'Privacy Notice',
-  'AI Governance Disclosure',
-]
+const REQUIRED = ['Platform Terms', 'Privacy Notice', 'AI Governance Disclosure'] as const
+
+function slugify(name: string) {
+  return name.toLowerCase().trim().replace(/\s+/g, '-')
+}
 
 export function computeCompleteness({
   currentDocs,
@@ -19,41 +20,32 @@ export function computeCompleteness({
   hasAISystems: boolean
   hasAccountability: boolean
 }) {
+  const docs = Array.isArray(currentDocs) ? currentDocs : []
   const missingDocs: string[] = []
 
-  for (const name of REQUIRED) {
-    const doc = currentDocs.find((d) => d.name === name)
+  for (const requiredName of REQUIRED) {
+    const doc = docs.find((d) => d.name === requiredName)
     if (!doc || doc.acceptanceStatus !== 'accepted') {
-      missingDocs.push(name)
+      missingDocs.push(requiredName)
     }
   }
 
   let status: 'strong' | 'developing' | 'incomplete' = 'strong'
 
-  if (
-    !currentDocs.length ||
-    missingDocs.length === REQUIRED.length
-  ) {
+  // Incomplete = no docs, or nothing accepted
+  if (!docs.length || missingDocs.length === REQUIRED.length) {
     status = 'incomplete'
-  } else if (
-    missingDocs.length > 0 ||
-    !hasAISystems ||
-    !hasAccountability
-  ) {
+  } else if (missingDocs.length > 0 || !hasAISystems || !hasAccountability) {
     status = 'developing'
   }
 
   return {
     status,
     breakdown: {
-      requiredDocs: REQUIRED.map((n) =>
-        n.toLowerCase().replace(/\s+/g, '-')
-      ),
-      missingDocs: missingDocs.map((n) =>
-        n.toLowerCase().replace(/\s+/g, '-')
-      ),
-      hasAISystems,
-      hasAccountability,
+      requiredDocs: REQUIRED.map(slugify),
+      missingDocs: missingDocs.map(slugify),
+      hasAISystems: !!hasAISystems,
+      hasAccountability: !!hasAccountability,
     },
   }
 }

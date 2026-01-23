@@ -40,9 +40,7 @@ type PageProps = {
   params: Promise<{ organisationId: string }>
 }
 
-export default async function OrganisationDashboardPage({
-  params,
-}: PageProps) {
+export default async function OrganisationDashboardPage({ params }: PageProps) {
   const { organisationId } = await params
 
   const result = await requireMember(organisationId)
@@ -56,10 +54,10 @@ export default async function OrganisationDashboardPage({
   const supabase = await supabaseServerRead()
 
   const [
-    { data: orgRow },
+    { data: orgRow, error: orgError },
     currentDocs,
     acceptanceEvents,
-    { count: aiSystemsCount },
+    { count: aiSystemsCount, error: aiCountError },
   ] = await Promise.all([
     supabase
       .from('organisations')
@@ -77,11 +75,16 @@ export default async function OrganisationDashboardPage({
       .eq('organisation_id', ctx.org.id),
   ])
 
+  if (orgError) {
+    console.error('[dashboard] organisations query error:', orgError)
+  }
+  if (aiCountError) {
+    console.error('[dashboard] ai_systems count query error:', aiCountError)
+  }
+
   const features = orgRow?.features ?? {}
 
-  const acceptedDocumentIds = new Set(
-    acceptanceEvents.map((e) => e.document_id)
-  )
+  const acceptedDocumentIds = new Set(acceptanceEvents.map((e) => e.document_id))
 
   const docsWithStatus = currentDocs.map((doc) => ({
     ...doc,
@@ -98,11 +101,15 @@ export default async function OrganisationDashboardPage({
     ? formatDate(
         acceptanceEvents
           .map((e) => e.accepted_at)
+          .filter(Boolean)
           .sort()
           .at(-1)
       )
     : null
 
+  // Gold-standard invariants:
+  // - completeness is derived, never stored
+  // - no outdated docs state in v1 (outdatedDocs = [])
   const rawCompleteness = computeCompleteness({
     currentDocs: docsWithStatus,
     hasAISystems: (aiSystemsCount ?? 0) > 0,
@@ -113,20 +120,18 @@ export default async function OrganisationDashboardPage({
     ...rawCompleteness,
     breakdown: {
       ...rawCompleteness.breakdown,
-      outdatedDocs: [],
+      outdatedDocs: [] as string[],
     },
   }
 
   const canEditFeatures = hasRole(ctx, ['owner', 'admin'])
 
-  const acceptedDocuments = acceptanceEvents.map(
-    (e: AcceptanceEvent) => ({
-      name: e.document_name,
-      version: e.version,
-      accepted_at: e.accepted_at,
-      content_hash: e.content_hash,
-    })
-  )
+  const acceptedDocuments = acceptanceEvents.map((e: AcceptanceEvent) => ({
+    name: e.document_name,
+    version: e.version,
+    accepted_at: e.accepted_at,
+    content_hash: e.content_hash,
+  }))
 
   return (
     <main className="py-10">
@@ -154,10 +159,7 @@ export default async function OrganisationDashboardPage({
           </h2>
 
           <div className="grid gap-6 lg:grid-cols-3">
-            <OrganisationOverview
-              name={ctx.org.name}
-              memberCount={1}
-            />
+            <OrganisationOverview name={ctx.org.name} memberCount={1} />
 
             <div className="lg:col-span-2 space-y-6">
               <EvidencePackCard organisationId={ctx.org.id} />
@@ -165,7 +167,7 @@ export default async function OrganisationDashboardPage({
               <FeatureToggle
                 organisationId={ctx.org.id}
                 featureKey="evidence_pack"
-                enabled={Boolean(features.evidence_pack)}
+                enabled={Boolean((features as any)?.evidence_pack)}
                 canEdit={canEditFeatures}
               />
             </div>
