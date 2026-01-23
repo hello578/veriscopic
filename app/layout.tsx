@@ -1,12 +1,11 @@
 // app/layout.tsx
 
-// app/layout.tsx
-
 import "./globals.css"
 import type { Metadata } from "next"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Analytics } from "@vercel/analytics/next"
+import { CookieBanner } from "@/components/cookie-banner"
 
 export const metadata: Metadata = {
   title: {
@@ -30,12 +29,17 @@ export default function RootLayout({
           {children}
         </TooltipProvider>
 
+        {/* Governance-forward cookie consent */}
+        <CookieBanner />
+
+        {/* Platform analytics */}
         <Analytics />
         <SpeedInsights />
       </body>
     </html>
   )
 }
+
 
 
 

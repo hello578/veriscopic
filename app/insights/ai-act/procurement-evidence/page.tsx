@@ -1,5 +1,7 @@
 // insights/ai-act/procurement-evidence/page.tsx
 
+import type { Metadata } from "next"
+
   export const metadata = {
   title: "EU AI Act procurement requirements: what evidence reviewers expect",
   description:

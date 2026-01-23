@@ -1,4 +1,6 @@
 // app/sitemap.ts
+
+
 import type { MetadataRoute } from "next"
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -33,12 +35,20 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.6,
     },
 
-    // Insights (authority content)
+    // Insights hub
     {
       url: `${baseUrl}/insights`,
       lastModified: now,
       changeFrequency: "monthly",
       priority: 0.7,
+    },
+
+    // Authority articles
+    {
+      url: `${baseUrl}/insights/risk-insurance/ai-risk-underwriting`,
+      lastModified: now,
+      changeFrequency: "yearly",
+      priority: 0.8,
     },
     {
       url: `${baseUrl}/insights/ai-act/procurement-evidence`,
@@ -53,21 +63,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     },
 
-    // Trust & governance pages
-    {
-      url: `${baseUrl}/security`,
-      lastModified: now,
-      changeFrequency: "yearly",
-      priority: 0.6,
-    },
-    {
-      url: `${baseUrl}/governance-principles`,
-      lastModified: now,
-      changeFrequency: "yearly",
-      priority: 0.6,
-    },
-
-    // Legal
+    // Legal & trust pages
     {
       url: `${baseUrl}/legal/privacy`,
       lastModified: now,

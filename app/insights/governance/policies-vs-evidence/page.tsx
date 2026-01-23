@@ -1,6 +1,8 @@
 
 // /insights/governance/policies-vs-evidence/page.tsx
 
+import type { Metadata } from "next"
+
 export const metadata = {
   title: "Why AI policies fail audits — and evidence-based governance succeeds",
   description:
