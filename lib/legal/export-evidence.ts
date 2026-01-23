@@ -1,7 +1,5 @@
 // lib/legal/export-evidence.ts
 
-// lib/legal/export-evidence.ts
-
 import 'server-only'
 
 import { supabaseServerRead } from '@/lib/supabase/server-read'
@@ -146,6 +144,7 @@ export async function exportEvidencePack(
     `
     )
     .eq('organisation_id', organisationId)
+    .order('created_at', { ascending: true })
 
   const generatedAt = new Date().toISOString()
 
@@ -173,29 +172,30 @@ export async function exportEvidencePack(
       })),
     },
 
-legal_acceptance: (acceptanceRows ?? []).map((row) => {
-  const doc = Array.isArray(row.legal_documents)
-    ? row.legal_documents[0]
-    : row.legal_documents
+    legal_acceptance: (acceptanceRows ?? []).map((row) => {
+      const doc = Array.isArray(row.legal_documents)
+        ? row.legal_documents[0]
+        : row.legal_documents
 
-  return {
-    document_id: row.document_id,
-    document_name: doc?.name ?? 'Unknown document',
-    document_type: doc?.document_type ?? null,
-    version: doc?.version ?? 'unknown',
-    jurisdiction: doc?.jurisdiction ?? null,
-    content_hash: row.content_hash,
-    accepted_at: new Date(row.accepted_at).toISOString(),
-    accepted_by_user_id: row.user_id,
-  }
-}),
-
+      return {
+        document_id: row.document_id,
+        document_name: doc?.name ?? 'Unknown document',
+        document_type: doc?.document_type ?? null,
+        version: doc?.version ?? 'unknown',
+        jurisdiction: doc?.jurisdiction ?? null,
+        content_hash: row.content_hash,
+        accepted_at: new Date(row.accepted_at).toISOString(),
+        accepted_by_user_id: row.user_id,
+      }
+    }),
 
     ai_systems: (aiSystems ?? []).map((s) => ({
       name: s.name,
       purpose: s.purpose,
       system_owner: s.system_owner,
-      data_categories: s.data_categories ?? [],
+      data_categories: Array.isArray(s.data_categories)
+        ? s.data_categories
+        : [],
       lifecycle_status: s.lifecycle_status,
       last_updated: s.updated_at
         ? new Date(s.updated_at).toISOString()
@@ -240,3 +240,4 @@ legal_acceptance: (acceptanceRows ?? []).map((row) => {
     },
   }
 }
+

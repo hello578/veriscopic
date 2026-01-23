@@ -1,5 +1,19 @@
 // lib/legal/export-evidence-pdf.sections.ts
 
+/**
+ * ⚠️ GOLD STANDARD — DO NOT SIMPLIFY
+ *
+ * This renderer is intentionally verbose and defensive.
+ * It guarantees:
+ * - deterministic output
+ * - bounded pagination
+ * - sample vs full safety
+ * - regulator-legible structure
+ *
+ * Any changes must preserve canonical behaviour.
+ */
+
+
 import PDFDocument from 'pdfkit'
 
 type PDFKitDocument = InstanceType<typeof PDFDocument>
@@ -129,7 +143,7 @@ export function renderEvidenceIndex(opts: {
   pageH1(doc, 'Evidence Index')
 
   callout(doc, {
-    title: 'Evidence strength (non-legal indicator)',
+   title: 'Evidence coverage signal (non-legal, informational)',
     body: `Current signal: ${completeness}. This reflects whether key evidence categories are populated (document acceptance + AI system registry).`,
   })
 
