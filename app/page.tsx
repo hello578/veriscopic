@@ -2,7 +2,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { SiteHeader } from "@/components/site-header"
-import { SiteFooter } from "@/components/site-footer"
 
 export const metadata: Metadata = {
   title: "AI Governance Evidence Platform | Veriscopic",
@@ -203,7 +202,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      <SiteFooter />
 
       {/* Minimal CSS so it works even if Tailwind is failing */}
       <style>{`
