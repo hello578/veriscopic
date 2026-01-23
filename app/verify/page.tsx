@@ -1,48 +1,31 @@
+
 // app/verify/page.tsx
-import VerifyUploader from '@/components/verify/verify-uploader'
+
+import VerifyUploader from "@/components/verify/verify-uploader"
+import { PublicPage } from "@/components/public-page"
 
 export default function VerifyPage() {
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12 space-y-8">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Verify a Veriscopic Evidence Pack
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Upload an Evidence Pack JSON file to compute the canonical SHA-256 hash
-          locally in your browser. No file content is transmitted.
-        </p>
-        <p className="text-sm text-muted-foreground">
-          This tool performs independent, client-side verification. No data is uploaded
-          or transmitted to Veriscopic servers.
-        </p>
+    <PublicPage variant="soft">
+      <section className="mx-auto max-w-3xl px-6 py-24 space-y-10">
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight">
+            Verify a Veriscopic Evidence Pack
+          </h1>
+          <p className="mt-3 text-slate-600">
+            Independently verify the integrity of an Evidence Pack using
+            cryptographic hashing. No login or data transmission required.
+          </p>
+        </div>
 
-      </div>
+        <VerifyUploader />
 
-      <VerifyUploader />
-
-      <p className="text-xs text-muted-foreground">
-        Veriscopic does not provide legal advice and does not certify compliance.
-        Verification confirms integrity of exported evidence only.
-      </p>
-
-      <div className="mt-12 rounded-md border bg-slate-50 px-6 py-4">
-  <p className="text-sm font-medium text-slate-900">
-    What to do next
-  </p>
-  <p className="mt-1 text-sm text-slate-600">
-    If this Evidence Pack was provided to you as part of procurement,
-    insurance review, or due diligence, you can reference the verified
-    hash in your internal assessment or request clarification from the
-    organisation if discrepancies are found.
-  </p>
-  <p className="mt-2 text-xs text-slate-500">
-    Verification confirms integrity only. It does not assess legal
-    compliance or risk classification.
-    You can verify this sample using the provided hash in the PDF footer.
-  </p>
-</div>
-
-    </main>
+        <div className="rounded-md border bg-white p-6 text-sm text-slate-600">
+          Verification confirms integrity only. It does not assess legal
+          compliance, risk classification, or regulatory status.
+        </div>
+      </section>
+    </PublicPage>
   )
 }
+

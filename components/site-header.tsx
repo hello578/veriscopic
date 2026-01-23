@@ -1,5 +1,4 @@
 // components/site-header.tsx
-
 "use client"
 
 import Link from "next/link"
@@ -13,11 +12,17 @@ import { Menu, X } from "lucide-react"
 
 const HEADER_HEIGHT = 80
 
-const NAV_ITEMS = [
-  { label: "Dashboard", href: "/dashboard" },
-  { label: "Governance", href: "/ai-systems" },
+// Public (SEO + trust) — always visible
+const PUBLIC_NAV_ITEMS = [
+  { label: "Insights", href: "/insights" },
   { label: "Evidence", href: "/evidence" },
   { label: "Verify", href: "/verify" },
+]
+
+// Private (product app) — only when authenticated
+const PRIVATE_NAV_ITEMS = [
+  { label: "Dashboard", href: "/dashboard" },
+  { label: "Governance", href: "/ai-systems" },
 ]
 
 export function SiteHeader() {
@@ -74,10 +79,21 @@ export function SiteHeader() {
 
           <div className="vh-spacer" />
 
-          {/* Desktop nav */}
-          {!loading && session && (
-            <nav className="vh-desktop">
-              {NAV_ITEMS.map((item) => (
+          {/* Desktop nav (always show public items; private only if authed) */}
+          <nav className="vh-desktop" aria-label="Primary">
+            {PUBLIC_NAV_ITEMS.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`vh-link ${isActive(item.href) ? "is-active" : ""}`}
+              >
+                {item.label}
+              </Link>
+            ))}
+
+            {!loading &&
+              session &&
+              PRIVATE_NAV_ITEMS.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
@@ -86,8 +102,7 @@ export function SiteHeader() {
                   {item.label}
                 </Link>
               ))}
-            </nav>
-          )}
+          </nav>
 
           {/* Desktop auth */}
           <div className="vh-desktop">
@@ -127,10 +142,24 @@ export function SiteHeader() {
           onClick={() => setMobileMenuOpen(false)}
         >
           <div className="vh-drawer" onClick={(e) => e.stopPropagation()}>
-            <nav className="vh-drawer-nav">
+            <nav className="vh-drawer-nav" aria-label="Mobile">
+              {/* Public links always visible */}
+              {PUBLIC_NAV_ITEMS.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`vh-drawer-link ${isActive(item.href) ? "is-active" : ""}`}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {item.label}
+                </Link>
+              ))}
+
+              {/* Private links if authed */}
               {!loading && session && (
                 <>
-                  {NAV_ITEMS.map((item) => (
+                  <div className="vh-divider" />
+                  {PRIVATE_NAV_ITEMS.map((item) => (
                     <Link
                       key={item.href}
                       href={item.href}
@@ -140,10 +169,12 @@ export function SiteHeader() {
                       {item.label}
                     </Link>
                   ))}
-                  <div className="vh-divider" />
                 </>
               )}
 
+              <div className="vh-divider" />
+
+              {/* Auth actions */}
               {!loading && !session && (
                 <Link
                   href="/auth/login"
@@ -282,3 +313,4 @@ export function SiteHeader() {
     </>
   )
 }
+

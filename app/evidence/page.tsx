@@ -22,7 +22,8 @@ export default function EvidenceLandingPage() {
   const hasSample = sampleEvidencePdfExists()
 
   return (
-    <main className="min-h-screen bg-white text-slate-900">
+   <main className="min-h-screen bg-white text-slate-900 pt-[96px]">
+
       {/* FAQ SCHEMA */}
       <Script
         id="faq-schema"

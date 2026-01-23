@@ -1,11 +1,14 @@
 // app/layout.tsx
+// app/layout.tsx
 
 import "./globals.css"
 import type { Metadata } from "next"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Analytics } from "@vercel/analytics/next"
-import { CookieBanner } from "@/components/cookie-banner"
+
+import { SiteHeader } from "@/components/site-header"
+import { SiteFooter } from "@/components/site-footer"
 
 export const metadata: Metadata = {
   title: {
@@ -24,22 +27,43 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-white text-slate-900 antialiased">
+      <body className="min-h-screen antialiased text-slate-900">
         <TooltipProvider delayDuration={150}>
-          {children}
+          {/* Ambient field */}
+          <div className="min-h-screen bg-slate-50">
+            <SiteHeader />
+
+            {/* Paper surface */}
+            <div className="relative mx-auto max-w-[1440px] bg-white shadow-[0_1px_0_rgba(15,23,42,0.04)]">
+              {/* Subtle paper grain overlay */}
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 z-10"
+                style={{
+                  backgroundImage: `
+                    radial-gradient(rgba(15,23,42,0.025) 1px, transparent 1px),
+                    radial-gradient(rgba(15,23,42,0.02) 1px, transparent 1px)
+                  `,
+                  backgroundSize: "3px 3px, 6px 6px",
+                  backgroundPosition: "0 0, 1px 1px",
+                  opacity: 0.35,
+                }}
+              />
+
+              {/* Actual page content */}
+              <div className="relative z-20">
+                {children}
+              </div>
+            </div>
+
+            <SiteFooter />
+          </div>
         </TooltipProvider>
 
-        {/* Governance-forward cookie consent */}
-        <CookieBanner />
-
-        {/* Platform analytics */}
         <Analytics />
         <SpeedInsights />
       </body>
     </html>
   )
 }
-
-
-
 
