@@ -22,8 +22,10 @@ export type LegalStatusRow = {
 }
 
 export function LegalStatusTable({
+  organisationId,
   rows = [],
 }: {
+  organisationId: string
   rows?: LegalStatusRow[]
 }) {
   return (
@@ -54,10 +56,10 @@ export function LegalStatusTable({
                   key={row.id}
                   className="flex items-center justify-between gap-4 py-4"
                 >
-                  {/* LEFT: document meta (clickable) */}
+                  {/* LEFT — DOCUMENT LINK */}
                   <Link
-                    href={`/legal/documents/${row.id}`}
-                    className="group flex flex-1 items-center justify-between gap-4 hover:bg-slate-50 rounded-md px-2 py-2"
+                    href={`/${organisationId}/legal/documents/${row.id}`}
+                    className="group flex flex-1 items-center justify-between gap-4 rounded-md px-2 py-2 hover:bg-slate-50"
                   >
                     <div className="space-y-1">
                       <p className="text-sm font-medium text-slate-900">
@@ -92,37 +94,26 @@ export function LegalStatusTable({
                         </Badge>
                       )}
 
-                      {isOutdated && (
-                        <Badge
-                          variant="outline"
-                          className="text-amber-700 border-amber-300"
-                        >
-                          Update required
-                        </Badge>
-                      )}
-
                       <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-slate-600 transition" />
                     </div>
                   </Link>
 
-                  {/* RIGHT: download PDF (non-navigating) */}
-                  <div className="shrink-0">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        window.open(
-                          `/api/legal/documents/${row.id}/pdf`,
-                          '_blank'
-                        )
-                      }}
-                    >
-                      <Download className="h-4 w-4 mr-1" />
-                      PDF
-                    </Button>
-                  </div>
+                  {/* RIGHT — PDF BUTTON */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      window.open(
+                        `/api/${organisationId}/legal/documents/${row.id}/pdf`,
+                        '_blank'
+                      )
+                    }}
+                  >
+                    <Download className="h-4 w-4 mr-1" />
+                    PDF
+                  </Button>
                 </div>
               )
             })}

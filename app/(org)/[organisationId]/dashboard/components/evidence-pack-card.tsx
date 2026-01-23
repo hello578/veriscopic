@@ -5,7 +5,13 @@
 import { useState } from 'react'
 import { Card, CardHeader, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Package, Download, ShieldCheck, Lock } from 'lucide-react'
+import {
+  Package,
+  Download,
+  ShieldCheck,
+  Lock,
+  Eye,
+} from 'lucide-react'
 
 interface Props {
   organisationId: string
@@ -76,13 +82,28 @@ export function EvidencePackCard({
           </div>
         </div>
 
-        {/* ACTIONS */}
+        {/* SAMPLE (always available) */}
+        <div className="pt-2">
+          <Button
+            variant="outline"
+            className="w-full gap-2"
+            onClick={() =>
+              window.open('/api/evidence-pack/pdf-sample', '_blank')
+            }
+          >
+            <Eye className="h-4 w-4" />
+            View sample Evidence Pack (PDF)
+          </Button>
+        </div>
+
+        {/* ORG EXPORTS */}
         {enabled ? (
           <>
             <div className="flex flex-wrap gap-2 pt-2">
               <Button asChild className="gap-2">
                 <a
                   href={`/api/evidence-pack/json?organisationId=${organisationId}`}
+                  target="_blank"
                 >
                   <Download className="h-4 w-4" />
                   Download JSON
@@ -92,6 +113,7 @@ export function EvidencePackCard({
               <Button asChild variant="outline" className="gap-2">
                 <a
                   href={`/api/evidence-pack/pdf?organisationId=${organisationId}`}
+                  target="_blank"
                 >
                   <Download className="h-4 w-4" />
                   Download PDF

@@ -1,7 +1,6 @@
-
 // app/(org)/[organisationId]/legal/documents/[documentId]/page.tsx
 
-import { notFound, redirect } from 'next/navigation'
+import { redirect } from 'next/navigation'
 import { supabaseServerRead } from '@/lib/supabase/server-read'
 import { requireMember } from '@/lib/rbac/guards'
 
@@ -13,8 +12,15 @@ import { CheckCircle2 } from 'lucide-react'
 import { AcceptDocumentsButton } from '@/components/legal/accept-documents-button'
 import { getOrganisationAcceptanceEvents } from '@/lib/legal/read-acceptance'
 
+type PageProps = {
+  params: Promise<{
+    organisationId: string
+    documentId: string
+  }>
+}
+
 // -----------------------------------------------------------------------------
-// Utils
+// Utilities
 // -----------------------------------------------------------------------------
 
 function formatDate(iso?: string | null) {
@@ -28,31 +34,14 @@ function formatDate(iso?: string | null) {
   })
 }
 
-function daysSince(iso?: string | null) {
-  if (!iso) return null
-  const then = new Date(iso).getTime()
-  if (Number.isNaN(then)) return null
-  return Math.floor((Date.now() - then) / (1000 * 60 * 60 * 24))
-}
-
 // -----------------------------------------------------------------------------
 // Page
 // -----------------------------------------------------------------------------
 
-export default async function LegalDocumentPage({
-  params,
-}: {
-  params: Promise<{
-    organisationId: string
-    documentId: string
-  }>
-}) {
+export default async function LegalDocumentPage({ params }: PageProps) {
   const { organisationId, documentId } = await params
 
-  // ---------------------------------------------------------------------------
-  // Auth / RBAC (deterministic)
-  // ---------------------------------------------------------------------------
-
+  // --- Auth / membership (gate access only)
   const membership = await requireMember(organisationId)
   if (!membership.ok) {
     redirect(membership.reason === 'unauthenticated' ? '/auth/login' : '/')
@@ -60,39 +49,42 @@ export default async function LegalDocumentPage({
 
   const supabase = await supabaseServerRead()
 
-  // ---------------------------------------------------------------------------
-  // Fetch immutable document
-  // ---------------------------------------------------------------------------
-
+  // --- Fetch platform document (GLOBAL, not org-owned)
   const { data: document, error } = await supabase
-    .from('legal_documents')
-    .select(
-      `
-      id,
-      name,
-      version,
-      content,
-      content_hash,
-      jurisdiction,
-      legal_documents_current (
-        status
-      )
-    `
+  .from('legal_documents')
+  .select(`
+    id,
+    name,
+    version,
+    content,
+    content_hash,
+    jurisdiction,
+    created_at
+  `)
+  .eq('id', documentId)
+  .single()
+
+  // 🚨 DO NOT call notFound()
+  if (!document) {
+    return (
+      <main className="py-12">
+        <div className="mx-auto max-w-xl px-6">
+          <h1 className="text-lg font-semibold text-slate-900">
+            Document unavailable
+          </h1>
+          <p className="mt-2 text-sm text-slate-600">
+            This platform document could not be loaded. It may have been
+            archived or removed.
+          </p>
+        </div>
+      </main>
     )
-    .eq('id', documentId)
-    .single()
+  }
 
-  if (error || !document) notFound()
 
-  const status =
-    document.legal_documents_current?.[0]?.status ?? 'archived'
 
-  // ---------------------------------------------------------------------------
-  // Acceptance state (exact version + hash)
-  // ---------------------------------------------------------------------------
-
+  // --- Acceptance state (exact hash)
   const acceptanceEvents = await getOrganisationAcceptanceEvents(organisationId)
-
   const acceptance = acceptanceEvents.find(
     (e) =>
       e.document_id === document.id &&
@@ -101,7 +93,6 @@ export default async function LegalDocumentPage({
 
   const isAccepted = Boolean(acceptance)
   const acceptedOn = formatDate(acceptance?.accepted_at)
-  const acceptedDaysAgo = daysSince(acceptance?.accepted_at)
 
   // ---------------------------------------------------------------------------
   // Render
@@ -112,35 +103,30 @@ export default async function LegalDocumentPage({
       <div className="mx-auto max-w-4xl px-6 space-y-8">
         {/* Header */}
         <header className="space-y-2">
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-semibold text-slate-900">
-              {document.name}
-            </h1>
-            <Badge variant="secondary">{status}</Badge>
-          </div>
+  <h1 className="text-2xl font-semibold text-slate-900">
+    {document.name}
+  </h1>
 
-          <p className="text-sm text-slate-600">
-            Version {document.version}
-            {document.jurisdiction ? <> · {document.jurisdiction}</> : null}
-          </p>
+  <p className="text-sm text-slate-600">
+    Version {document.version}
+    {document.jurisdiction ? <> · {document.jurisdiction}</> : null}
+  </p>
 
-          <p className="text-xs text-slate-500">
-            Platform-issued document. Accepted versions are cryptographically
-            bound and immutable.
-          </p>
-        </header>
+  <p className="text-xs text-slate-500">
+    Platform-issued document. Accepted versions are cryptographically
+    bound and immutable.
+  </p>
+</header>
 
         {/* Actions */}
-        <div>
-          <a
-            href={`/api/legal/documents/${document.id}/pdf`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm text-slate-600 underline hover:text-slate-900"
-          >
-            Download PDF
-          </a>
-        </div>
+        <a
+          href={`/api/${organisationId}/legal/documents/${document.id}/pdf`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sm text-slate-600 underline hover:text-slate-900"
+        >
+          Download PDF
+        </a>
 
         {/* Acceptance status */}
         <Card>
@@ -157,12 +143,8 @@ export default async function LegalDocumentPage({
                   <CheckCircle2 className="h-4 w-4" />
                   Accepted
                 </div>
-
                 <p className="text-sm text-slate-700">
                   Accepted on <strong>{acceptedOn}</strong>
-                  {acceptedDaysAgo !== null
-                    ? <> · {acceptedDaysAgo} days ago</>
-                    : null}
                 </p>
               </>
             ) : (
@@ -170,7 +152,6 @@ export default async function LegalDocumentPage({
                 <p className="text-sm text-slate-600">
                   This document has not yet been accepted by your organisation.
                 </p>
-
                 <AcceptDocumentsButton organisationId={organisationId} />
               </>
             )}
@@ -200,12 +181,7 @@ export default async function LegalDocumentPage({
             </div>
           </CardContent>
         </Card>
-
-        <p className="text-xs text-slate-500">
-          Acceptance records are immutable and audit-ready.
-        </p>
       </div>
     </main>
   )
 }
-

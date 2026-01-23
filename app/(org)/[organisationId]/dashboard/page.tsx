@@ -1,5 +1,7 @@
 // app/(org)/[organisationId]/dashboard/page.tsx
 
+// app/(org)/[organisationId]/dashboard/page.tsx
+
 import { redirect } from 'next/navigation'
 import { requireMember, hasRole } from '@/lib/rbac/guards'
 import { supabaseServerRead } from '@/lib/supabase/server-read'
@@ -21,6 +23,13 @@ import {
 } from '@/lib/legal/read-acceptance'
 import { computeCompleteness } from '@/lib/legal/completeness'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
+// -----------------------------------------------------------------------------
+// Utils
+// -----------------------------------------------------------------------------
+
 function formatDate(iso?: string | null) {
   if (!iso) return null
   const d = new Date(iso)
@@ -32,17 +41,24 @@ function formatDate(iso?: string | null) {
   })
 }
 
+// -----------------------------------------------------------------------------
+// Page
+// -----------------------------------------------------------------------------
+
+type PageProps = {
+  params: Promise<{ organisationId: string }>
+}
+
 export default async function OrganisationDashboardPage({
   params,
-}: {
-  params: Promise<{ organisationId: string }>
-}) {
+}: PageProps) {
   const { organisationId } = await params
 
   // --------------------------------------------------
-  // Auth / membership
+  // Auth / membership (authoritative)
   // --------------------------------------------------
   const result = await requireMember(organisationId)
+
   if (!result.ok) {
     redirect(result.reason === 'unauthenticated' ? '/auth/login' : '/')
   }
@@ -53,22 +69,23 @@ export default async function OrganisationDashboardPage({
   const supabase = await supabaseServerRead()
 
   // --------------------------------------------------
-  // Data fetch
+  // Data fetch (parallel)
   // --------------------------------------------------
-  const [{ data: orgRow }, currentDocs, acceptanceEvents] = await Promise.all([
-    supabase
-      .from('organisations')
-      .select('features')
-      .eq('id', ctx.org.id)
-      .single(),
-    getCurrentPlatformDocuments(),
-    getOrganisationAcceptanceEvents(ctx.org.id),
-  ])
+  const [{ data: orgRow }, currentDocs, acceptanceEvents] =
+    await Promise.all([
+      supabase
+        .from('organisations')
+        .select('features')
+        .eq('id', ctx.org.id)
+        .single(),
+      getCurrentPlatformDocuments(),
+      getOrganisationAcceptanceEvents(ctx.org.id),
+    ])
 
   const features = orgRow?.features ?? {}
 
   // --------------------------------------------------
-  // Acceptance state (document_id based)
+  // Document acceptance state
   // --------------------------------------------------
   const acceptedDocumentIds = new Set(
     acceptanceEvents.map((e) => e.document_id)
@@ -103,16 +120,11 @@ export default async function OrganisationDashboardPage({
     hasAccountability: true,
   })
 
-  /**
-   * UI adapter:
-   * Drift v1.0 does NOT support outdated docs,
-   * but the card expects the key.
-   */
   const completeness = {
     ...rawCompleteness,
     breakdown: {
       ...rawCompleteness.breakdown,
-      outdatedDocs: [], // v1.0 invariant
+      outdatedDocs: [], // invariant for v1
     },
   }
 
@@ -158,7 +170,10 @@ export default async function OrganisationDashboardPage({
           </h2>
 
           <div className="grid gap-6 lg:grid-cols-3">
-            <OrganisationOverview name={ctx.org.name} memberCount={1} />
+            <OrganisationOverview
+              name={ctx.org.name}
+              memberCount={1}
+            />
 
             <div className="lg:col-span-2 space-y-6">
               <EvidencePackCard organisationId={ctx.org.id} />
@@ -180,6 +195,7 @@ export default async function OrganisationDashboardPage({
           </h2>
 
           <LegalStatusTable
+            organisationId={ctx.org.id}
             rows={docsWithStatus.map((doc) => ({
               id: doc.id,
               name: doc.name,
@@ -216,4 +232,3 @@ export default async function OrganisationDashboardPage({
     </main>
   )
 }
-

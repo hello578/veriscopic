@@ -1,4 +1,6 @@
-// app/api/legal/documents/[documentId]/pdf/route.ts
+
+// app/api/(org)/[organisationId]/legal/documents/[documentId]/pdf/route.ts
+
 import 'server-only'
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -8,36 +10,32 @@ import { supabaseService } from '@/lib/supabase/server-service'
 import { renderSimpleDocumentPdf } from '@/lib/legal/render-document-pdf'
 
 export async function GET(
-  _request: NextRequest,
-  context: { params: Promise<{ documentId: string }> }
+  _req: NextRequest,
+  context: {
+    params: Promise<{
+      organisationId: string
+      documentId: string
+    }>
+  }
 ) {
-  const { documentId } = await context.params
+  const { organisationId, documentId } = await context.params
+
+  // ── Auth / RBAC (deterministic)
+  const membership = await requireMember(organisationId)
+  if (!membership.ok) {
+    return NextResponse.json(
+      { error: 'Forbidden' },
+      { status: 403 }
+    )
+  }
 
   const supabase = await supabaseServerRead()
   const service = supabaseService()
 
-  // ── Auth: must be a member of *some* organisation
-  const { data: memberships } = await supabase
-    .from('organisation_members')
-    .select('organisation_id')
-    .limit(1)
-
-  const organisationId = memberships?.[0]?.organisation_id
-  if (!organisationId) {
-    return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
-  }
-
-  const authz = await requireMember(organisationId)
-  if (!authz.ok) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  }
-
   // ── Fetch immutable document
   const { data: doc, error } = await supabase
     .from('legal_documents')
-    .select(
-      'id, name, version, content, content_hash, created_at'
-    )
+    .select('id, name, version, content, content_hash, created_at')
     .eq('id', documentId)
     .single()
 
@@ -50,13 +48,12 @@ export async function GET(
   // ── Check if PDF already exists
   const { data: existing } = await service.storage
     .from('legal-documents')
-    .list(doc.id, { search: `${doc.version}.pdf`, limit: 1 })
+    .list(doc.id, { limit: 1 })
 
-  const exists = (existing ?? []).some(
-    (f) => f.name === `${doc.version}.pdf`
-  )
+  const exists =
+    (existing ?? []).some((f) => f.name === `${doc.version}.pdf`)
 
-  // ── Generate + upload once (immutable artefact)
+  // ── Generate once (immutable artefact)
   if (!exists) {
     const pdf = await renderSimpleDocumentPdf({
       title: doc.name,
@@ -76,7 +73,7 @@ export async function GET(
         },
       })
 
-    // Race-safe: already exists is fine
+    // Race-safe
     if (uploadErr && !uploadErr.message.includes('exists')) {
       return NextResponse.json(
         { error: 'PDF upload failed' },
@@ -97,8 +94,7 @@ export async function GET(
     )
   }
 
-  return NextResponse.redirect(signed.signedUrl, {
-    status: 302,
-  })
+  return NextResponse.redirect(signed.signedUrl, { status: 302 })
 }
+
 
