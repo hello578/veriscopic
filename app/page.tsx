@@ -190,7 +190,7 @@ export default function HomePage() {
         <div style={{ position: "absolute", inset: 0, background: "rgba(255,255,255,0.75)" }} />
         <div className="v-container" style={{ position: "relative", padding: "64px 0" }}>
           <div className="v-final">
-            <Link href="/evidence" className="v-btn v-btn-primary v-btn-lg">
+            <Link href="/evidence/request" className="v-btn v-btn-primary v-btn-lg">
               Request access
             </Link>
             <Link href="/api/evidence-pack/pdf-sample?organisationId=sample" className="v-btn v-btn-mint v-btn-lg">

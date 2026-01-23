@@ -1,0 +1,5 @@
+Contact: mailto:security@veriscopic.com
+Preferred-Languages: en
+Policy: https://veriscopic.com/security
+Acknowledgments: https://veriscopic.com/security
+Hiring: https://veriscopic.com

@@ -18,6 +18,28 @@ export function SiteFooter() {
             </p>
           </div>
 
+          {/* Trust & Governance */}
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-900">
+              Trust & Governance
+            </p>
+            <ul className="mt-4 space-y-3">
+              <li>
+                <Link href="/security" className="text-sm text-slate-600 hover:text-slate-900">
+                  Security & Data Handling
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/governance-principles"
+                  className="text-sm text-slate-600 hover:text-slate-900"
+                >
+                  AI Governance Principles
+                </Link>
+              </li>
+            </ul>
+          </div>
+
           {/* Legal */}
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-900">
@@ -25,26 +47,17 @@ export function SiteFooter() {
             </p>
             <ul className="mt-4 space-y-3">
               <li>
-                <Link
-                  href="/legal/privacy"
-                  className="text-sm text-slate-600 hover:text-slate-900"
-                >
+                <Link href="/legal/privacy" className="text-sm text-slate-600 hover:text-slate-900">
                   Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/legal/terms"
-                  className="text-sm text-slate-600 hover:text-slate-900"
-                >
+                <Link href="/legal/terms" className="text-sm text-slate-600 hover:text-slate-900">
                   Terms of Service
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/legal/cookies"
-                  className="text-sm text-slate-600 hover:text-slate-900"
-                >
+                <Link href="/legal/cookies" className="text-sm text-slate-600 hover:text-slate-900">
                   Cookie Policy
                 </Link>
               </li>
@@ -56,7 +69,7 @@ export function SiteFooter() {
         <div className="mt-12 flex flex-col gap-3 border-t border-slate-200 pt-6 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} Veriscopic. All rights reserved.</p>
           <p className="font-medium">
-            UK & EU focused · Audit-evidence first · External-facing by design
+            UK & EU focused · Evidence-first · Designed for scrutiny
           </p>
         </div>
       </div>
