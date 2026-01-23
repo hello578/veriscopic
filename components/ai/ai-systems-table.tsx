@@ -1,113 +1,102 @@
 // components/ai/ai-systems-table.tsx
 
+// components/ai/ai-systems-table.tsx
 'use client'
 
-import { useState } from 'react'
-
 import { Switch } from '@/components/ui/switch'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
 
-type AISystem = {
+export type AISystemRow = {
   id: string
   name: string
   purpose: string
   lifecycle_status: string
   system_owner: string | null
   is_operational: boolean
+  updated_at: string
 }
 
-interface Props {
+type Props = {
   organisationId: string
-  systems: AISystem[]
+  systems: AISystemRow[]
+  onToggle: (id: string, is_operational: boolean) => void
 }
 
-export function AISystemsTable({ organisationId, systems }: Props) {
-  const [rows, setRows] = useState(systems)
-  const [updatingId, setUpdatingId] = useState<string | null>(null)
-
-  async function updateOperational(
-    systemId: string,
-    isOperational: boolean
+export function AISystemsTable({
+  organisationId,
+  systems,
+  onToggle,
+}: Props) {
+  async function toggleSystem(
+    id: string,
+    next: boolean
   ) {
-    setUpdatingId(systemId)
-
-    // Optimistic UI
-    setRows((prev) =>
-      prev.map((s) =>
-        s.id === systemId
-          ? { ...s, is_operational: isOperational }
-          : s
-      )
+    // Optimistic UI already handled by parent
+    await fetch(
+      `/api/${organisationId}/ai-systems/${id}`,
+      {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_operational: next }),
+      }
     )
-
-    try {
-      await fetch(
-        `/api/${organisationId}/ai-systems/${systemId}`,
-        {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ is_operational: isOperational }),
-        }
-      )
-    } finally {
-      setUpdatingId(null)
-    }
   }
 
   return (
-    <div className="rounded-md border border-slate-200 bg-white">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Purpose</TableHead>
-            <TableHead>Lifecycle</TableHead>
-            <TableHead className="text-center">
-              Operational
-            </TableHead>
-            <TableHead>Owner</TableHead>
-          </TableRow>
-        </TableHeader>
+    <div className="rounded-md border">
+      <table className="w-full text-sm">
+        <thead className="bg-slate-50 text-slate-600">
+          <tr>
+            <th className="px-3 py-2 text-left">Name</th>
+            <th className="px-3 py-2 text-left">Purpose</th>
+            <th className="px-3 py-2 text-left">Lifecycle</th>
+            <th className="px-3 py-2 text-left">Operational</th>
+            <th className="px-3 py-2 text-left">Owner</th>
+          </tr>
+        </thead>
 
-        <TableBody>
-          {rows.map((system) => (
-            <TableRow key={system.id}>
-              <TableCell className="font-medium">
-                {system.name}
-              </TableCell>
+        <tbody>
+          {systems.filter(Boolean).map((s) => (
 
-              <TableCell className="text-sm text-slate-600">
-                {system.purpose}
-              </TableCell>
-
-              <TableCell className="text-sm">
-                {system.lifecycle_status}
-              </TableCell>
-
-              <TableCell className="text-center">
+            <tr
+              key={s.id}
+              className="border-t"
+            >
+              <td className="px-3 py-2 font-medium">
+                {s.name}
+              </td>
+              <td className="px-3 py-2 text-slate-600">
+                {s.purpose}
+              </td>
+              <td className="px-3 py-2">
+                {s.lifecycle_status}
+              </td>
+              <td className="px-3 py-2">
                 <Switch
-                  checked={system.is_operational}
-                  disabled={updatingId === system.id}
-                  onCheckedChange={(v) =>
-                    updateOperational(system.id, v)
-                  }
+                  checked={s.is_operational}
+                  onCheckedChange={(v) => {
+                    onToggle(s.id, v)
+                    toggleSystem(s.id, v)
+                  }}
                 />
-              </TableCell>
-
-              <TableCell className="text-sm text-slate-600">
-                {system.system_owner ?? '—'}
-              </TableCell>
-            </TableRow>
+              </td>
+              <td className="px-3 py-2 text-slate-600">
+                {s.system_owner ?? '—'}
+              </td>
+            </tr>
           ))}
-        </TableBody>
-      </Table>
+
+          {systems.length === 0 && (
+            <tr>
+              <td
+                colSpan={5}
+                className="px-3 py-6 text-center text-slate-500"
+              >
+                No AI systems registered
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
     </div>
   )
 }

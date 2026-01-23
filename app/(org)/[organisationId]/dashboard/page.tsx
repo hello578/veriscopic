@@ -1,4 +1,3 @@
-// app/(org)/[organisationId]/dashboard/page.tsx
 
 // app/(org)/[organisationId]/dashboard/page.tsx
 
@@ -26,10 +25,6 @@ import { computeCompleteness } from '@/lib/legal/completeness'
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
-// -----------------------------------------------------------------------------
-// Utils
-// -----------------------------------------------------------------------------
-
 function formatDate(iso?: string | null) {
   if (!iso) return null
   const d = new Date(iso)
@@ -41,10 +36,6 @@ function formatDate(iso?: string | null) {
   })
 }
 
-// -----------------------------------------------------------------------------
-// Page
-// -----------------------------------------------------------------------------
-
 type PageProps = {
   params: Promise<{ organisationId: string }>
 }
@@ -54,28 +45,21 @@ export default async function OrganisationDashboardPage({
 }: PageProps) {
   const { organisationId } = await params
 
-  // --------------------------------------------------
-  // Auth / membership (authoritative)
-  // --------------------------------------------------
   const result = await requireMember(organisationId)
-
   if (!result.ok) {
     redirect(result.reason === 'unauthenticated' ? '/auth/login' : '/')
   }
 
   const { ctx } = result
-  if (!ctx.org || !ctx.user) redirect('/')
+  if (!ctx.org) redirect('/')
 
   const supabase = await supabaseServerRead()
 
-  // --------------------------------------------------
-  // Data fetch (parallel)
-  // --------------------------------------------------
   const [
     { data: orgRow },
     currentDocs,
     acceptanceEvents,
-    { data: aiSystems },
+    { count: aiSystemsCount },
   ] = await Promise.all([
     supabase
       .from('organisations')
@@ -87,19 +71,14 @@ export default async function OrganisationDashboardPage({
 
     getOrganisationAcceptanceEvents(ctx.org.id),
 
-    // 🔹 Minimal AI systems check (existence only)
     supabase
       .from('ai_systems')
-      .select('id')
-      .eq('organisation_id', ctx.org.id)
-      .limit(1),
+      .select('*', { count: 'exact', head: true })
+      .eq('organisation_id', ctx.org.id),
   ])
 
   const features = orgRow?.features ?? {}
 
-  // --------------------------------------------------
-  // Document acceptance state
-  // --------------------------------------------------
   const acceptedDocumentIds = new Set(
     acceptanceEvents.map((e) => e.document_id)
   )
@@ -124,22 +103,17 @@ export default async function OrganisationDashboardPage({
       )
     : null
 
-  // --------------------------------------------------
-  // Completeness (v1.0)
-  // --------------------------------------------------
-  const hasAISystems = Boolean(aiSystems && aiSystems.length > 0)
-
   const rawCompleteness = computeCompleteness({
     currentDocs: docsWithStatus,
-    hasAISystems,
-    hasAccountability: true, // enforced org ownership model
+    hasAISystems: (aiSystemsCount ?? 0) > 0,
+    hasAccountability: true,
   })
 
   const completeness = {
     ...rawCompleteness,
     breakdown: {
       ...rawCompleteness.breakdown,
-      outdatedDocs: [], // invariant for v1
+      outdatedDocs: [],
     },
   }
 
@@ -154,19 +128,15 @@ export default async function OrganisationDashboardPage({
     })
   )
 
-  // --------------------------------------------------
-  // Render
-  // --------------------------------------------------
   return (
     <main className="py-10">
       <div className="mx-auto max-w-4xl px-6 space-y-14">
         <DashboardHeader
           organisationName={ctx.org.name}
-          userEmail={ctx.user.email ?? undefined}
+          userEmail={ctx.user?.email ?? undefined}
           role={ctx.role ?? 'member'}
         />
 
-        {/* GOVERNANCE STATUS */}
         <section className="space-y-4">
           <h2 className="text-sm font-semibold text-slate-900">
             Governance status
@@ -178,7 +148,6 @@ export default async function OrganisationDashboardPage({
           />
         </section>
 
-        {/* EVIDENCE OUTPUTS */}
         <section className="space-y-6">
           <h2 className="text-sm font-semibold text-slate-900">
             Evidence outputs
@@ -203,7 +172,6 @@ export default async function OrganisationDashboardPage({
           </div>
         </section>
 
-        {/* GOVERNANCE INPUTS */}
         <section className="space-y-6">
           <h2 className="text-sm font-semibold text-slate-900">
             Governance inputs
@@ -230,7 +198,6 @@ export default async function OrganisationDashboardPage({
           <ResponsibilityMap />
         </section>
 
-        {/* AUDIT */}
         <section className="space-y-3">
           <h2 className="text-sm font-semibold text-slate-900">
             Audit & traceability

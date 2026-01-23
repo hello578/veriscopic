@@ -47,7 +47,7 @@ export function renderCover(opts: {
 
   try {
     doc.image(brandMarkPath, doc.page.margins.left, 44, { width: 26 })
-  } catch {}
+  } catch { }
 
   doc.moveDown(2)
   setTitle(doc)
@@ -75,6 +75,12 @@ export function renderCover(opts: {
   doc.text(`Generated (UTC): ${toUtcDate(pack.generated_at)}`)
   doc.text(`Evidence Pack Version: ${pack.evidence_pack_version}`)
   doc.text(`Declared AI systems: ${pack.ai_systems.length}`)
+
+  const operationalCount = pack.ai_systems.filter(
+    (s) => s.lifecycle_status === 'active'
+  ).length
+
+  doc.text(`Operational AI systems: ${operationalCount}`)
 
 
   hr(doc)
@@ -145,7 +151,7 @@ export function renderEvidenceIndex(opts: {
   pageH1(doc, 'Evidence Index')
 
   callout(doc, {
-   title: 'Evidence coverage signal (non-legal, informational)',
+    title: 'Evidence coverage signal (non-legal, informational)',
     body: `Current signal: ${completeness}. This reflects whether key evidence categories are populated (document acceptance + AI system registry).`,
   })
 
@@ -174,7 +180,7 @@ export function renderGovernanceSnapshot(opts: {
 }) {
   const { doc, pack, isSample, maxPages } = opts
 
-  
+
   pageH1(doc, 'Governance Snapshot')
 
   const counts = pack.governance_snapshot.organisation_events.length
@@ -341,7 +347,7 @@ export function renderAiActMap(opts: {
 }) {
   const { doc, pack, isSample, maxPages } = opts
 
-  
+
   pageH1(doc, 'EU AI Act Evidence Map (Governance)')
 
   doc.text(

@@ -1,3 +1,4 @@
+
 // lib/legal/export-evidence-pdf.core.ts
 
 import path from 'path'
@@ -20,25 +21,25 @@ import {
   renderVerificationAppendix,
 } from './export-evidence-pdf.sections'
 
-const FONT_REGULAR = path.join(process.cwd(), 'public/fonts/Inter_18pt-Regular.ttf')
-const FONT_SEMIBOLD = path.join(process.cwd(), 'public/fonts/Inter_18pt-SemiBold.ttf')
-const BRAND_MARK = path.join(process.cwd(), 'public/assets/brand/veriscopic-mark-mono.png')
+const FONT_REGULAR = path.join(
+  process.cwd(),
+  'public/fonts/Inter_18pt-Regular.ttf'
+)
+const FONT_SEMIBOLD = path.join(
+  process.cwd(),
+  'public/fonts/Inter_18pt-SemiBold.ttf'
+)
+const BRAND_MARK = path.join(
+  process.cwd(),
+  'public/assets/brand/veriscopic-mark-mono.png'
+)
 
 export async function renderEvidencePackPdfCore(
   pack: EvidencePack,
   options?: { mode?: 'full' | 'sample' }
 ): Promise<Buffer> {
-  console.log('[PDF] renderEvidencePackPdfCore CALLED', {
-    mode: options?.mode,
-    organisation: pack.organisation?.id,
-  })
-
   const isSample = options?.mode === 'sample'
   const SAMPLE_PAGES = 5
-
-  console.log('[PDF] isSample?', isSample)
-
-  /* ----------------------- PDFKit render ----------------------- */
 
   const doc: PDFKitDocument = new PDFDocument({
     size: 'A4',
@@ -52,15 +53,12 @@ export async function renderEvidencePackPdfCore(
 
   const chunks: Buffer[] = []
   const rendered = new Promise<Buffer>((resolve, reject) => {
-    doc.on('data', c => chunks.push(c))
+    doc.on('data', (c) => chunks.push(c))
     doc.on('end', () => resolve(Buffer.concat(chunks)))
     doc.on('error', reject)
   })
 
-  const newPage = () => {
-    doc.addPage()
-    console.log('[PDF] addPage → total now', doc.bufferedPageRange().count)
-  }
+  const newPage = () => doc.addPage()
 
   const counts = {
     legalAcceptance: pack.legal_acceptance.length,
@@ -76,8 +74,15 @@ export async function renderEvidencePackPdfCore(
       ? 'Developing'
       : 'Incomplete'
 
-  // Page 1 — Cover
-  renderCover({ doc, pack, isSample, brandMarkPath: BRAND_MARK })
+  // ------------------------------------------------------------------
+  // Cover (STRICT EvidencePack — no derived fields injected)
+  // ------------------------------------------------------------------
+  renderCover({
+    doc,
+    pack,
+    isSample,
+    brandMarkPath: BRAND_MARK,
+  })
 
   if (isSample) {
     newPage()
@@ -124,35 +129,26 @@ export async function renderEvidencePackPdfCore(
   doc.end()
 
   const pdfBuffer = await rendered
+  if (!isSample) return pdfBuffer
 
-  console.log('[PDF] PDFKit render complete, byteLength =', pdfBuffer.length)
-
-  /* ----------------------- HARD TRUNCATION ----------------------- */
-
-  if (!isSample) {
-    console.log('[PDF] full mode → returning PDFKit output')
-    return pdfBuffer
-  }
-
-  console.log('[PDF] sample mode → ENTERING TRUNCATION')
-
+  // ------------------------------------------------------------------
+  // Hard truncate sample
+  // ------------------------------------------------------------------
   const src = await PDFLibDocument.load(pdfBuffer)
-  console.log('[PDF] source page count (before truncation):', src.getPageCount())
-
   const out = await PDFLibDocument.create()
-  const pagesToCopy = Array.from({ length: SAMPLE_PAGES }, (_, i) => i)
 
-  const pages = await out.copyPages(src, pagesToCopy)
-  pages.forEach(p => out.addPage(p))
+  const pages = await out.copyPages(
+    src,
+    Array.from({ length: SAMPLE_PAGES }, (_, i) => i)
+  )
+  pages.forEach((p) => out.addPage(p))
 
   const finalBuffer = Buffer.from(await out.save())
   const finalDoc = await PDFLibDocument.load(finalBuffer)
 
-  console.log('[PDF] FINAL sample page count:', finalDoc.getPageCount())
-
   if (finalDoc.getPageCount() !== SAMPLE_PAGES) {
     throw new Error(
-      `[PDF] Sample PDF invariant violated — expected ${SAMPLE_PAGES}, got ${finalDoc.getPageCount()}`
+      `Sample PDF invariant violated — expected ${SAMPLE_PAGES}, got ${finalDoc.getPageCount()}`
     )
   }
 
