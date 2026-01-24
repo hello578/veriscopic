@@ -1,5 +1,6 @@
 // components/public-page.tsx
 
+
 export function PublicPage({
   children,
   variant = "default",

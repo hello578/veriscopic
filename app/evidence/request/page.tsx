@@ -1,10 +1,10 @@
 
 // app/evidence/request/page.tsx
+
+
 "use client"
 
 import { useState } from "react"
-import { SiteHeader } from "@/components/site-header"
-import { SiteFooter } from "@/components/site-footer"
 
 export default function RequestEvidencePackPage() {
   const [loading, setLoading] = useState(false)
@@ -44,82 +44,76 @@ export default function RequestEvidencePackPage() {
   }
 
   return (
-    <div className="bg-white text-slate-900">
-      <SiteHeader />
+    <main className="mx-auto max-w-3xl px-6 py-24">
+      <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+        Request an Evidence Pack
+      </h1>
 
-      <main className="mx-auto max-w-3xl px-6 py-24">
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-          Request an Evidence Pack
-        </h1>
+      <p className="mt-4 text-slate-600">
+        Request access to a Veriscopic AI governance evidence pack for
+        procurement, audit, or regulatory review.
+      </p>
 
-        <p className="mt-4 text-slate-600">
-          Request access to a Veriscopic AI governance evidence pack for
-          procurement, audit, or regulatory review.
-        </p>
+      {submitted ? (
+        <div className="mt-10 rounded-lg border border-slate-200 bg-slate-50 p-6">
+          <p className="font-medium">
+            Thank you — your request has been received.
+          </p>
+          <p className="mt-2 text-sm text-slate-600">
+            We’ll review your request and be in touch shortly.
+          </p>
+        </div>
+      ) : (
+        <form className="mt-12 space-y-6" onSubmit={onSubmit}>
+          <Input label="Work email" name="email" type="email" required />
+          <Input label="Organisation" name="organisation" required />
 
-        {submitted ? (
-          <div className="mt-10 rounded-lg border border-slate-200 bg-slate-50 p-6">
-            <p className="font-medium">
-              Thank you — your request has been received.
-            </p>
-            <p className="mt-2 text-sm text-slate-600">
-              We’ll review your request and be in touch shortly.
-            </p>
-          </div>
-        ) : (
-          <form className="mt-12 space-y-6" onSubmit={onSubmit}>
-            <Input label="Work email" name="email" type="email" required />
-            <Input label="Organisation" name="organisation" required />
+          <Select
+            label="Your role"
+            name="role"
+            options={[
+              "Founder / Executive",
+              "CTO / Engineering",
+              "Compliance / Risk",
+              "Legal",
+              "Procurement",
+              "Insurer / Advisor",
+              "Other",
+            ]}
+          />
 
-            <Select
-              label="Your role"
-              name="role"
-              options={[
-                "Founder / Executive",
-                "CTO / Engineering",
-                "Compliance / Risk",
-                "Legal",
-                "Procurement",
-                "Insurer / Advisor",
-                "Other",
-              ]}
-            />
+          <Select
+            label="Intended use"
+            name="intendedUse"
+            options={[
+              "Procurement review",
+              "Regulatory preparation",
+              "Insurance or underwriting",
+              "Internal governance",
+              "Investor or board review",
+              "Exploratory / evaluation",
+            ]}
+          />
 
-            <Select
-              label="Intended use"
-              name="intendedUse"
-              options={[
-                "Procurement review",
-                "Regulatory preparation",
-                "Insurance or underwriting",
-                "Internal governance",
-                "Investor or board review",
-                "Exploratory / evaluation",
-              ]}
-            />
+          <Textarea
+            label="Additional context (optional)"
+            name="message"
+          />
 
-            <Textarea
-              label="Additional context (optional)"
-              name="message"
-            />
+          {error && (
+            <p className="text-sm text-red-600">{error}</p>
+          )}
 
-            {error && (
-              <p className="text-sm text-red-600">{error}</p>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="rounded-md bg-slate-900 px-6 py-3 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
-            >
-              {loading ? "Submitting…" : "Submit request"}
-            </button>
-          </form>
-        )}
-      </main>
-
-      <SiteFooter />
-    </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="rounded-md bg-slate-900 px-6 py-3 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
+          >
+            {loading ? "Submitting…" : "Submit request"}
+          </button>
+        </form>
+      )}
+    </main>
   )
 }
 

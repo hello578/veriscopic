@@ -1,5 +1,6 @@
 
-// /insights/page.tsx// app/insights/page.tsx
+// /insights/page.tsx
+
 
 import { PublicPage } from "@/components/public-page"
 
