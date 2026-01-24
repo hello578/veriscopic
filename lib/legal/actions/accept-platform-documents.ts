@@ -3,7 +3,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { supabaseService } from '@/lib/supabase/server-service'
+import { supabaseServerWrite } from '@/lib/supabase/server-write'
 
 type CurrentRow = {
   id: string
@@ -19,7 +19,8 @@ export async function acceptCurrentPlatformDocuments(
     throw new Error('Missing organisationId')
   }
 
-  const supabase = supabaseService()
+  // ✅ USER-BOUND CLIENT (cookie-aware)
+  const supabase = await supabaseServerWrite()
 
   const {
     data: { user },
@@ -58,6 +59,7 @@ export async function acceptCurrentPlatformDocuments(
         content_hash: contentHash,
       })
 
+    // Ignore duplicate acceptance
     if (insertError && insertError.code !== '23505') {
       throw insertError
     }
@@ -65,4 +67,3 @@ export async function acceptCurrentPlatformDocuments(
 
   revalidatePath(`/${organisationId}/dashboard`)
 }
-

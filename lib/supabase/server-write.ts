@@ -1,7 +1,8 @@
 // lib/supabase/server-write.ts
 
-import { cookies } from 'next/headers'
+// lib/supabase/server-write.ts
 import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 
 export async function supabaseServerWrite() {
   const cookieStore = await cookies()
@@ -24,3 +25,4 @@ export async function supabaseServerWrite() {
     }
   )
 }
+

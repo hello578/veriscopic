@@ -1,9 +1,10 @@
 // components/site-header.tsx
+
 "use client"
 
 import Link from "next/link"
 import Image from "next/image"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useSession } from "@/lib/auth/use-session"
@@ -19,19 +20,30 @@ const PUBLIC_NAV_ITEMS = [
   { label: "Verify", href: "/verify" },
 ]
 
-// Private (product app) — only when authenticated
-const PRIVATE_NAV_ITEMS = [
-  { label: "Dashboard", href: "/dashboard" },
-  { label: "Governance", href: "/ai-systems" },
-]
-
 export function SiteHeader() {
   const [scrolled, setScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
   const { session, loading } = useSession()
   const supabase = supabaseBrowser()
   const router = useRouter()
   const pathname = usePathname()
+
+  // ✅ derive organisationId safely from URL
+  const organisationId = useMemo(() => {
+    if (!pathname) return null
+    const parts = pathname.split("/").filter(Boolean)
+    return parts.length > 0 ? parts[0] : null
+  }, [pathname])
+
+  // ✅ private nav built only when org exists
+  const PRIVATE_NAV_ITEMS = useMemo(() => {
+    if (!organisationId) return []
+    return [
+      { label: "Dashboard", href: `/${organisationId}/dashboard` },
+      { label: "Governance", href: `/${organisationId}/ai-systems` },
+    ]
+  }, [organisationId])
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8)
@@ -46,7 +58,7 @@ export function SiteHeader() {
   }
 
   function isActive(href: string) {
-    if (href === "/dashboard") return pathname === "/dashboard"
+    if (href === "/dashboard") return pathname === href
     return pathname?.startsWith(href)
   }
 
@@ -79,7 +91,7 @@ export function SiteHeader() {
 
           <div className="vh-spacer" />
 
-          {/* Desktop nav (always show public items; private only if authed) */}
+          {/* Desktop nav */}
           <nav className="vh-desktop" aria-label="Primary">
             {PUBLIC_NAV_ITEMS.map((item) => (
               <Link
@@ -122,7 +134,7 @@ export function SiteHeader() {
             )}
           </div>
 
-          {/* Mobile toggle - ALWAYS far right */}
+          {/* Mobile toggle */}
           <button
             type="button"
             className="vh-mobile-btn"
@@ -134,7 +146,7 @@ export function SiteHeader() {
         </div>
       </header>
 
-      {/* Mobile overlay */}
+      {/* Mobile overlay (unchanged styling) */}
       {mobileMenuOpen && (
         <div
           className="vh-overlay"
@@ -143,7 +155,6 @@ export function SiteHeader() {
         >
           <div className="vh-drawer" onClick={(e) => e.stopPropagation()}>
             <nav className="vh-drawer-nav" aria-label="Mobile">
-              {/* Public links always visible */}
               {PUBLIC_NAV_ITEMS.map((item) => (
                 <Link
                   key={item.href}
@@ -155,8 +166,7 @@ export function SiteHeader() {
                 </Link>
               ))}
 
-              {/* Private links if authed */}
-              {!loading && session && (
+              {!loading && session && PRIVATE_NAV_ITEMS.length > 0 && (
                 <>
                   <div className="vh-divider" />
                   {PRIVATE_NAV_ITEMS.map((item) => (
@@ -174,7 +184,6 @@ export function SiteHeader() {
 
               <div className="vh-divider" />
 
-              {/* Auth actions */}
               {!loading && !session && (
                 <Link
                   href="/auth/login"

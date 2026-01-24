@@ -1,5 +1,8 @@
 // lib/supabase/server-service.ts
 
+// ⚠️ SERVICE ROLE — DO NOT USE FOR USER ACTIONS
+
+
 import { createClient } from '@supabase/supabase-js'
 
 export function supabaseService() {

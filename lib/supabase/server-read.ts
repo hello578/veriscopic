@@ -1,4 +1,4 @@
-// lib/supabase/server-read.ts
+
 // lib/supabase/server-read.ts
 
 // lib/supabase/server-read.ts
@@ -15,13 +15,11 @@ export async function supabaseServerRead(): Promise<SupabaseClient> {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        getAll() {
-          return cookieStore.getAll()
+        get(name: string) {
+          return cookieStore.get(name)?.value
         },
-        // 🚫 READ client: no set / remove
       },
     }
   )
 }
-
 
