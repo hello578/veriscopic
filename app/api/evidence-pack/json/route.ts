@@ -1,8 +1,12 @@
+
 // app/api/evidence-pack/json/route.ts
+
 import { NextResponse } from 'next/server'
 import { exportEvidencePack } from '@/lib/legal/export-evidence'
 import { requireRole } from '@/lib/rbac/guards'
 import { requireFeature } from '@/lib/compliance/require-feature'
+import { supabaseServerWrite } from '@/lib/supabase/server-write'
+import { runDriftCheck } from '@/lib/legal/drift/run-drift-check'
 
 export const runtime = 'nodejs'
 
@@ -36,8 +40,25 @@ export async function GET(req: Request) {
     )
   }
 
-  // --- Canonical export
+  // --- Canonical export (PURE)
   const pack = await exportEvidencePack(organisationId)
+
+  // 🔍 Detect governance drift against last sealed pack
+await runDriftCheck(organisationId)
+
+
+  // --- Persist immutable snapshot (append-only)
+  const supabase = await supabaseServerWrite()
+
+  await supabase.from('evidence_packs').insert({
+    organisation_id: organisationId,
+    pack_version: pack.evidence_pack_version,
+    canonical_json_sha256: pack.integrity.canonical_json_sha256,
+    generated_at: pack.generated_at,
+    generated_by: 'system',
+    scope: 'full',
+    json_snapshot: pack,
+  })
 
   return NextResponse.json(pack, {
     headers: {

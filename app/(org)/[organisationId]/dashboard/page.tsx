@@ -1,6 +1,7 @@
 
 // app/(org)/[organisationId]/dashboard/page.tsx
 
+
 import { redirect } from 'next/navigation'
 import { requireMember, hasRole } from '@/lib/rbac/guards'
 import { supabaseServerRead } from '@/lib/supabase/server-read'
@@ -13,6 +14,7 @@ import { LegalStatusTable } from './components/legal-status-table'
 import { EvidenceLog } from './components/evidence-log'
 import { AcceptDocumentsCTA } from './components/accept-documents-cta'
 import { EvidencePackCard } from './components/evidence-pack-card'
+import { DriftStatusCard } from './components/drift-status-card'
 import { FeatureToggle } from '@/components/compliance/feature-toggle'
 
 import { getCurrentPlatformDocuments } from '@/lib/legal/read-documents'
@@ -20,6 +22,7 @@ import {
   getOrganisationAcceptanceEvents,
   type AcceptanceEvent,
 } from '@/lib/legal/read-acceptance'
+import { getLatestDriftStatus } from '@/lib/legal/drift/get-latest-drift'
 import { computeCompleteness } from '@/lib/legal/completeness'
 
 export const dynamic = 'force-dynamic'
@@ -54,10 +57,11 @@ export default async function OrganisationDashboardPage({ params }: PageProps) {
   const supabase = await supabaseServerRead()
 
   const [
-    { data: orgRow, error: orgError },
+    { data: orgRow },
     currentDocs,
     acceptanceEvents,
-    { count: aiSystemsCount, error: aiCountError },
+    { count: aiSystemsCount },
+    driftStatus,
   ] = await Promise.all([
     supabase
       .from('organisations')
@@ -66,25 +70,21 @@ export default async function OrganisationDashboardPage({ params }: PageProps) {
       .single(),
 
     getCurrentPlatformDocuments(),
-
     getOrganisationAcceptanceEvents(ctx.org.id),
 
     supabase
       .from('ai_systems')
       .select('*', { count: 'exact', head: true })
       .eq('organisation_id', ctx.org.id),
-  ])
 
-  if (orgError) {
-    console.error('[dashboard] organisations query error:', orgError)
-  }
-  if (aiCountError) {
-    console.error('[dashboard] ai_systems count query error:', aiCountError)
-  }
+    getLatestDriftStatus(ctx.org.id),
+  ])
 
   const features = orgRow?.features ?? {}
 
-  const acceptedDocumentIds = new Set(acceptanceEvents.map((e) => e.document_id))
+  const acceptedDocumentIds = new Set(
+    acceptanceEvents.map((e) => e.document_id)
+  )
 
   const docsWithStatus = currentDocs.map((doc) => ({
     ...doc,
@@ -107,9 +107,6 @@ export default async function OrganisationDashboardPage({ params }: PageProps) {
       )
     : null
 
-  // Gold-standard invariants:
-  // - completeness is derived, never stored
-  // - no outdated docs state in v1 (outdatedDocs = [])
   const rawCompleteness = computeCompleteness({
     currentDocs: docsWithStatus,
     hasAISystems: (aiSystemsCount ?? 0) > 0,
@@ -142,6 +139,7 @@ export default async function OrganisationDashboardPage({ params }: PageProps) {
           role={ctx.role ?? 'member'}
         />
 
+        {/* GOVERNANCE STATUS */}
         <section className="space-y-4">
           <h2 className="text-sm font-semibold text-slate-900">
             Governance status
@@ -151,8 +149,14 @@ export default async function OrganisationDashboardPage({ params }: PageProps) {
             completeness={completeness}
             organisationId={ctx.org.id}
           />
+
+          <DriftStatusCard
+            status={driftStatus.status}
+            detectedAt={driftStatus.detected_at}
+          />
         </section>
 
+        {/* EVIDENCE OUTPUTS */}
         <section className="space-y-6">
           <h2 className="text-sm font-semibold text-slate-900">
             Evidence outputs
@@ -174,6 +178,7 @@ export default async function OrganisationDashboardPage({ params }: PageProps) {
           </div>
         </section>
 
+        {/* GOVERNANCE INPUTS */}
         <section className="space-y-6">
           <h2 className="text-sm font-semibold text-slate-900">
             Governance inputs
@@ -200,6 +205,7 @@ export default async function OrganisationDashboardPage({ params }: PageProps) {
           <ResponsibilityMap />
         </section>
 
+        {/* AUDIT LOG */}
         <section className="space-y-3">
           <h2 className="text-sm font-semibold text-slate-900">
             Audit & traceability
@@ -216,4 +222,5 @@ export default async function OrganisationDashboardPage({ params }: PageProps) {
     </main>
   )
 }
+
 
