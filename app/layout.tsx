@@ -3,12 +3,13 @@
 
 import "./globals.css"
 import type { Metadata } from "next"
-import { TooltipProvider } from "@/components/ui/tooltip"
-import { SpeedInsights } from "@vercel/speed-insights/next"
-import { Analytics } from "@vercel/analytics/next"
 
+import { TooltipProvider } from "@/components/ui/tooltip"
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
+
+import { Analytics } from "@vercel/analytics/react"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 export const metadata: Metadata = {
   title: {
@@ -50,9 +51,20 @@ export default function RootLayout({
                 }}
               />
 
-              {/* Actual page content */}
+              {/* Global content frame (spacing + rhythm) */}
               <div className="relative z-20">
-                {children}
+                <div
+                  className="
+                    mx-auto
+                    max-w-[1120px]
+                    px-6
+                    pt-[96px]
+                    pb-24
+                    sm:pb-32
+                  "
+                >
+                  {children}
+                </div>
               </div>
             </div>
 
@@ -60,10 +72,10 @@ export default function RootLayout({
           </div>
         </TooltipProvider>
 
+        {/* Vercel tooling */}
         <Analytics />
         <SpeedInsights />
       </body>
     </html>
   )
 }
-

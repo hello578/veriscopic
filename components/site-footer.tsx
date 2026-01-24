@@ -1,22 +1,25 @@
 // components/site-footer.tsx
+
 import Link from "next/link"
 
 export function SiteFooter() {
   return (
     <footer className="border-t border-slate-200 bg-white">
-      <div className="mx-auto max-w-7xl px-6 py-16 lg:px-12">
-        <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Shared shell — MUST match header */}
+      <div className="mx-auto max-w-[1120px] px-6 py-16">
+        {/* Top grid */}
+        <div className="grid gap-12 md:grid-cols-4">
           {/* Brand */}
-          <div className="sm:col-span-2">
+          <div className="md:col-span-2">
             <p className="text-sm font-semibold tracking-tight text-slate-900">
               Veriscopic
             </p>
 
             <p className="mt-4 max-w-md text-sm leading-relaxed text-slate-600">
-              Governance-grade evidence infrastructure for AI systems — providing
-              immutable records, audit-ready exports, and independently verifiable
-              assurance for procurement, insurers, investors, and regulators
-              operating across the UK and EU.
+              Governance-grade evidence infrastructure for AI systems —
+              providing immutable records, audit-ready exports, and
+              independently verifiable assurance for procurement, insurers,
+              investors, and regulators operating across the UK and EU.
             </p>
           </div>
 
@@ -90,10 +93,8 @@ export function SiteFooter() {
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-12 flex flex-col gap-3 border-t border-slate-200 pt-6 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-          <p>
-            © {new Date().getFullYear()} Veriscopic. All rights reserved.
-          </p>
+        <div className="mt-12 flex flex-col gap-3 border-t border-slate-200 pt-6 text-xs text-slate-500 md:flex-row md:items-center md:justify-between">
+          <p>© {new Date().getFullYear()} Veriscopic. All rights reserved.</p>
 
           <p className="font-medium text-slate-600">
             Evidence-first · Audit-ready · Designed for external scrutiny
@@ -103,4 +104,5 @@ export function SiteFooter() {
     </footer>
   )
 }
+
 

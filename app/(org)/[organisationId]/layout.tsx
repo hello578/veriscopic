@@ -2,7 +2,7 @@
 
 // app/(org)/[organisationId]/layout.tsx
 
-import { ReactNode } from 'react'
+import type { ReactNode } from 'react'
 
 export default function OrganisationLayout({
   children,
@@ -15,3 +15,4 @@ export default function OrganisationLayout({
     </div>
   )
 }
+
