@@ -29,7 +29,7 @@ export default function LoginForm() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${location.origin}/auth/callback`,
+        redirectTo: `${window.location.origin}/auth/callback`,
       },
     })
 
@@ -37,7 +37,7 @@ export default function LoginForm() {
       setError(error.message)
       setLoading(false)
     }
-    // Success will redirect away automatically
+    // Success redirects automatically
   }
 
   async function sendMagicLink(e: React.FormEvent) {
@@ -57,15 +57,15 @@ export default function LoginForm() {
     const { error } = await supabase.auth.signInWithOtp({
       email: trimmed,
       options: {
-        emailRedirectTo: `${location.origin}/auth/callback`,
-        shouldCreateUser: true,
+        // 🚨 THIS IS THE CRITICAL FIX
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     })
 
     if (error) {
       setError(error.message)
-      setLoading(false)
       setMode("idle")
+      setLoading(false)
       return
     }
 
@@ -123,7 +123,7 @@ export default function LoginForm() {
                 disabled={loading || !emailOk}
                 className="w-full rounded-md border border-slate-300 bg-white py-2 text-sm font-medium text-slate-900 hover:bg-slate-50 disabled:opacity-60"
               >
-                {mode === "sending" ? "Sending link…" : "Send magic link"}
+                {mode === "sending" ? "Sending link…" : "Send sign-in link"}
               </button>
 
               <p className="text-xs text-slate-500">
@@ -133,12 +133,12 @@ export default function LoginForm() {
           ) : (
             <div className="space-y-3">
               <div className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-                <strong>Check your inbox.</strong> We sent a secure sign-in link to{" "}
+                <strong>Check your inbox.</strong> We sent a sign-in link to{" "}
                 <span className="font-medium">{email.trim()}</span>.
               </div>
 
               <p className="text-xs text-slate-500">
-                If you don’t see it within a minute, check spam/junk or try again.
+                If you don’t see it within a minute, check spam or try again.
               </p>
 
               <button
@@ -168,4 +168,3 @@ export default function LoginForm() {
     </main>
   )
 }
-
