@@ -2,6 +2,10 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { SiteHeader } from "@/components/site-header"
+import { PricingBand } from "@/components/home/pricing-band";
+import { FinalCTA } from "@/components/shared/final-cta"
+
+
 
 export const metadata: Metadata = {
   title: "AI Governance Evidence Platform | Veriscopic",
@@ -153,54 +157,13 @@ export default function HomePage() {
 
       {/* PRICING */}
       <section className="v-band">
-        <div className="v-container v-split">
-          <div
-            className="v-image-panel"
-            style={{
-              backgroundImage: "url(/images/minimal-sphere.png)",
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-            }}
-            aria-label="Minimal sphere"
-          />
+        <PricingBand />
 
-          <div className="v-pricing">
-            <h2 className="v-h2 v-h2-invert">Transparent Pricing.</h2>
-            <div className="v-price-lines">
-              <div>Core plans: £399–£699/month</div>
-              <div>Setup from: £750</div>
-              <div>Enterprise from £25k</div>
-            </div>
-            <div className="v-note">Early access available</div>
-          </div>
-        </div>
       </section>
 
       {/* FINAL CTA */}
-      <section
-        style={{
-          position: "relative",
-          overflow: "hidden",
-          backgroundImage: "url(/images/hero-background.png)",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      >
-        <div style={{ position: "absolute", inset: 0, background: "rgba(255,255,255,0.75)" }} />
-        <div className="v-container" style={{ position: "relative", padding: "64px 0" }}>
-          <div className="v-final">
-            <Link href="/evidence/request" className="v-btn v-btn-primary v-btn-lg">
-              Request access
-            </Link>
-            <Link href="/api/evidence-pack/pdf-sample?organisationId=sample" className="v-btn v-btn-mint v-btn-lg">
-              View sample evidence pack
-            </Link>
-            <Link href="https://calendly.com/hello-veriscopic/30min" className="v-btn v-btn-muted v-btn-lg">
-              Talk to us
-            </Link>
-          </div>
-        </div>
-      </section>
+
+      <FinalCTA />
 
 
       {/* Minimal CSS so it works even if Tailwind is failing */}

@@ -58,4 +58,27 @@ body {
   opacity: 1 !important;
 }
 
+/* --------------------------------------------------
+   CTA & BUTTON LAYOUT (CRITICAL)
+-------------------------------------------------- */
+
+/* Force all Veriscopic buttons to behave as buttons */
+.v-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+/* Vertical CTA stacks must never collapse */
+.v-cta-stack > * {
+  display: block;
+}
+
+/* Prevent inline-link collapsing inside content areas */
+.v-copy a {
+  display: inline-flex;
+}
+
+
 }

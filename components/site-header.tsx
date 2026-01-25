@@ -18,6 +18,7 @@ const PUBLIC_NAV_ITEMS = [
   { label: "Insights", href: "/insights" },
   { label: "Evidence", href: "/evidence" },
   { label: "Verify", href: "/verify" },
+  { label: "Pricing", href: "/pricing" }, // ✅ added
 ]
 
 export function SiteHeader() {
@@ -147,7 +148,7 @@ export function SiteHeader() {
       </header>
 
       {/* Mobile overlay (unchanged styling) */}
-      {mobileMenuOpen && (
+            {mobileMenuOpen && (
         <div
           className="vh-overlay"
           style={{ top: HEADER_HEIGHT }}
@@ -204,6 +205,7 @@ export function SiteHeader() {
         </div>
       )}
 
+      {/* ✅ STYLE BLOCK MUST LIVE INSIDE THE RETURN */}
       <style>{`
         .vh-shell{
           max-width: 1120px;
@@ -312,7 +314,6 @@ export function SiteHeader() {
           cursor:pointer;
         }
 
-        /* Desktop breakpoint */
         @media (min-width: 768px){
           .vh-desktop{ display:flex; }
           .vh-mobile-btn{ display:none; }
@@ -322,4 +323,3 @@ export function SiteHeader() {
     </>
   )
 }
-
