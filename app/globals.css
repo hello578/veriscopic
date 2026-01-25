@@ -76,9 +76,19 @@ body {
 }
 
 /* Prevent inline-link collapsing inside content areas */
-.v-copy a {
+/* Only buttons should be inline-flex */
+.v-btn {
   display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
 }
+
+/* Links inside copy should flow naturally */
+.v-copy a:not(.v-btn) {
+  display: inline;
+}
+
 
 
 }

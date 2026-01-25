@@ -1,46 +1,39 @@
 
 // components/shared/final-cta.tsx
+// components/shared/final-cta.tsx
 
 import Link from "next/link"
 
 export function FinalCTA() {
   return (
-    <section
-      style={{
-        position: "relative",
-        overflow: "hidden",
-        backgroundImage: "url(/images/hero-background.png)",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        marginTop: "96px", // ← breathing room before CTA
-      }}
-    >
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: "rgba(255,255,255,0.75)",
-        }}
-      />
+    <section className="v-band">
+      <div className="v-container text-center py-24 sm:py-32">
+        <h2 className="v-h2 v-h2-invert">
+          Request access
+        </h2>
 
-      <div
-        className="v-container"
-        style={{ position: "relative", padding: "80px 0" }}
-      >
-        <div className="v-final">
-          <Link href="/evidence/request" className="v-btn v-btn-primary v-btn-lg">
+        <p className="mx-auto mt-6 max-w-2xl text-slate-200">
+          Speak to us about evidence packs, procurement readiness,
+          or external AI governance assurance.
+        </p>
+
+        <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+          <Link
+            href="https://calendly.com/hello-veriscopic/30min"
+            className="v-btn v-btn-primary v-btn-lg"
+          >
             Request access
           </Link>
 
           <Link
-            href="/api/evidence-pack/pdf-sample?organisationId=sample"
-            className="v-btn v-btn-mint v-btn-lg"
+            href="/evidence"
+            className="v-btn v-btn-ghost v-btn-lg"
           >
             View sample evidence pack
           </Link>
 
           <Link
-            href="https://calendly.com/hello-veriscopic/30min"
+            href="/contact"
             className="v-btn v-btn-muted v-btn-lg"
           >
             Talk to us

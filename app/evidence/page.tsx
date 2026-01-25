@@ -1,7 +1,5 @@
 
 // app/evidence/page.tsx
-// app/evidence/page.tsx
-
 import type { Metadata } from "next"
 import Script from "next/script"
 import Link from "next/link"
@@ -53,36 +51,33 @@ export default function EvidenceLandingPage() {
 
       {/* HERO */}
       <section className="v-section">
-        <div className="v-container max-w-3xl">
+        <div className="v-container v-copy">
           <p className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">
             Evidence Packs · External Assurance · Audit-Ready
           </p>
 
-          <h1 className="text-4xl font-semibold leading-tight mb-6">
+          <h1 className="v-h1 mb-6">
             AI governance evidence.
             <br />
             Ready to be examined.
           </h1>
 
-          <p className="text-lg text-slate-600 mb-10">
+          <p className="max-w-2xl text-lg text-slate-600">
             Veriscopic produces immutable, audit-ready evidence of how your AI
             systems are governed — suitable for enterprise procurement, investor
             due diligence, insurance review, and regulatory scrutiny.
           </p>
 
-          {/* PRIMARY CTA ROW */}
-          <div className="flex flex-col gap-4 sm:flex-row sm:gap-6">
+          {/* CTA GROUP */}
+          <div className="mt-12 flex flex-col gap-4 sm:flex-row">
             <Link
               href="https://calendly.com/hello-veriscopic/30min"
-              className="inline-flex justify-center rounded-lg bg-slate-900 px-6 py-3 text-white font-medium hover:bg-slate-800"
+              className="v-btn v-btn-primary"
             >
               Request an Evidence Pack
             </Link>
 
-            <Link
-              href="#included"
-              className="inline-flex justify-center rounded-lg border border-slate-300 px-6 py-3 text-slate-700 font-medium hover:bg-slate-50"
-            >
+            <Link href="#included" className="v-btn v-btn-ghost">
               What’s included
             </Link>
           </div>
@@ -90,15 +85,15 @@ export default function EvidenceLandingPage() {
       </section>
 
       {/* CONTEXT */}
-      <section className="v-section bg-slate-50">
-        <div className="v-container max-w-3xl">
-          <div className="rounded-lg border border-slate-200 bg-white p-6">
-            <p className="font-medium mb-2">Evidence for your organisation</p>
-            <p className="text-slate-600">
+      <section className="v-section v-muted">
+        <div className="v-container v-copy">
+          <div className="rounded-lg border bg-white p-6">
+            <p className="font-medium">Evidence for your organisation</p>
+            <p className="mt-2 text-slate-600">
               Evidence Packs are generated from declared governance inputs,
               including accepted platform documents and AI system declarations.
             </p>
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-slate-500">
               Availability depends on governance completeness.
             </p>
           </div>
@@ -107,18 +102,16 @@ export default function EvidenceLandingPage() {
 
       {/* POLICIES */}
       <section className="v-section">
-        <div className="v-container max-w-3xl">
-          <h2 className="text-2xl font-semibold mb-4">
-            Policies are not evidence
-          </h2>
+        <div className="v-container v-copy">
+          <h2 className="v-h2">Policies are not evidence</h2>
 
-          <p className="text-slate-600 mb-4">
+          <p className="max-w-3xl text-slate-600">
             Organisations are increasingly required to demonstrate how AI risks
             are governed, disclosed, and accepted — including which terms apply,
             who accepted them, and whether records are immutable and auditable.
           </p>
 
-          <p className="text-slate-600">
+          <p className="mt-6 max-w-3xl text-slate-600">
             Editable PDFs, screenshots, and policies without acceptance evidence
             routinely fail enterprise procurement, insurance review, and due
             diligence.
@@ -127,13 +120,11 @@ export default function EvidenceLandingPage() {
       </section>
 
       {/* INCLUDED */}
-      <section id="included" className="v-section bg-slate-50">
-        <div className="v-container max-w-4xl">
-          <h2 className="text-2xl font-semibold mb-8">
-            What’s included in an Evidence Pack
-          </h2>
+      <section id="included" className="v-section v-muted">
+        <div className="v-container v-copy">
+          <h2 className="v-h2">What’s included in an Evidence Pack</h2>
 
-          <ul className="grid gap-6 sm:grid-cols-2">
+          <ul className="mt-10 grid gap-6 sm:grid-cols-2">
             {[
               "Hash-locked legal, privacy, and AI governance documents",
               "Immutable acceptance records with timestamps and document versions",
@@ -141,10 +132,7 @@ export default function EvidenceLandingPage() {
               "Machine-readable JSON export for audit and legal review",
               "Clear verification instructions for third parties",
             ].map((item) => (
-              <li
-                key={item}
-                className="rounded-lg border border-slate-200 bg-white p-6"
-              >
+              <li key={item} className="rounded-lg border bg-white p-6">
                 {item}
               </li>
             ))}
@@ -154,62 +142,52 @@ export default function EvidenceLandingPage() {
 
       {/* VERIFICATION */}
       <section className="v-section">
-        <div className="v-container max-w-3xl">
-          <h2 className="text-2xl font-semibold mb-4">
-            Independent verification
-          </h2>
+        <div className="v-container v-copy">
+          <h2 className="v-h2">Independent verification</h2>
 
-          <p className="text-slate-600 mb-8">
+          <p className="max-w-3xl text-slate-600">
             Every Evidence Pack can be independently verified using cryptographic
             hashing. No login or trust in Veriscopic is required.
           </p>
 
-          <Link
-            href="/verify"
-            className="inline-flex justify-center rounded-lg border border-slate-300 px-6 py-3 text-slate-700 font-medium hover:bg-slate-50"
-          >
-            Verify an Evidence Pack
-          </Link>
+          <div className="mt-8">
+            <Link href="/verify" className="v-btn v-btn-muted">
+              Verify an Evidence Pack
+            </Link>
+          </div>
         </div>
       </section>
 
       {/* SAMPLE */}
       {hasSample && (
-        <section className="v-section bg-slate-50">
-          <div className="v-container max-w-3xl">
-            <h2 className="text-2xl font-semibold mb-4">
-              View a redacted sample Evidence Pack
-            </h2>
+        <section className="v-section v-muted">
+          <div className="v-container v-copy">
+            <h2 className="v-h2">View a redacted sample Evidence Pack</h2>
 
-            <p className="text-slate-600 mb-8">
-              Review a redacted example to understand structure, depth, and
-              verification guarantees.
-            </p>
-
-            <a
-              href="/api/evidence-pack/pdf-sample?organisationId=sample"
-              target="_blank"
-              className="inline-flex justify-center rounded-lg border border-slate-300 px-6 py-3 text-slate-700 font-medium hover:bg-slate-50"
-            >
-              View sample PDF
-            </a>
+            <div className="mt-8">
+              <a
+                href="/api/evidence-pack/pdf-sample?organisationId=sample"
+                target="_blank"
+                className="v-btn v-btn-ghost"
+              >
+                View sample PDF
+              </a>
+            </div>
           </div>
         </section>
       )}
 
       {/* EU AI ACT */}
       <section className="v-section">
-        <div className="v-container max-w-3xl">
-          <h2 className="text-2xl font-semibold mb-4">
-            Supporting EU AI Act governance
-          </h2>
+        <div className="v-container v-copy">
+          <h2 className="v-h2">Supporting EU AI Act governance</h2>
 
-          <p className="text-slate-600 mb-4">
+          <p className="max-w-3xl text-slate-600">
             Evidence Packs are designed to support transparency, documentation,
             and governance expectations emerging under the EU AI Act.
           </p>
 
-          <p className="text-slate-600">
+          <p className="mt-6 max-w-3xl text-slate-600">
             Veriscopic does not provide legal advice, certify compliance,
             classify AI risk, or assess system performance. Evidence Packs record
             declared governance facts only.
@@ -218,28 +196,27 @@ export default function EvidenceLandingPage() {
       </section>
 
       {/* FINAL CTA */}
-      <section className="bg-slate-900 py-24">
-        <div className="v-container max-w-3xl text-center">
-          <h2 className="text-3xl font-semibold text-white mb-6">
+      <section className="v-section v-band">
+        <div className="v-container text-center">
+          <h2 className="v-h2 v-h2-invert">
             Request an AI Governance Evidence Pack
           </h2>
 
-          <p className="text-slate-300 mb-10">
+          <p className="mx-auto mt-6 max-w-2xl text-slate-200">
             If you were asked tomorrow to prove how your AI is governed,
             Veriscopic enables you to respond with confidence — not assumptions.
           </p>
 
-          <Link
-            href="https://calendly.com/hello-veriscopic/30min"
-            className="inline-flex justify-center rounded-lg bg-white px-8 py-4 text-slate-900 font-medium hover:bg-slate-100"
-          >
-            Book a call
-          </Link>
+          <div className="mt-10">
+            <Link
+              href="https://calendly.com/hello-veriscopic/30min"
+              className="v-btn v-btn-primary v-btn-lg"
+            >
+              Book a call
+            </Link>
+          </div>
         </div>
       </section>
-
-      {/* HARD SPACER BEFORE GLOBAL FOOTER */}
-      <div aria-hidden className="h-40" />
     </main>
   )
 }

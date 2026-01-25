@@ -55,16 +55,16 @@ export default function RootLayout({
               <div className="relative z-20">
                 <div
                   className="
-                    mx-auto
-                    max-w-[1120px]
-                    px-6
-                    pt-[96px]
-                    pb-24
-                    sm:pb-32
-                  "
+    mx-auto
+    max-w-[1120px]
+    px-6
+    pt-[96px]
+    pb-[160px]      /* ⬅️ GUARANTEED FOOTER BREATHING ROOM */
+  "
                 >
                   {children}
                 </div>
+
               </div>
             </div>
 
