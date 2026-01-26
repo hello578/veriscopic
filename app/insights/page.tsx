@@ -1,6 +1,5 @@
-
-// /insights/page.tsx
-
+// app/insights/page.tsx
+// app/insights/page.tsx
 
 import { PublicPage } from "@/components/public-page"
 
@@ -24,48 +23,43 @@ export default function InsightsPage() {
       {/* Content */}
       <section className="mx-auto max-w-3xl px-6 py-20">
         <div className="space-y-10">
-          <article>
-            <a
-              href="/insights/risk-insurance/ai-risk-underwriting"
-              className="group"
-            >
-              <h2 className="text-xl font-semibold group-hover:underline">
-                What insurers will ask for when underwriting AI risk
-              </h2>
-              <p className="mt-2 text-sm text-slate-600">
-                How AI governance evidence increasingly shapes underwriting,
-                exclusions, and coverage decisions.
-              </p>
-            </a>
-          </article>
-
-          <article>
-            <a href="/insights/ai-act/procurement-evidence" className="group">
-              <h2 className="text-xl font-semibold group-hover:underline">
-                What procurement teams actually look for under the EU AI Act
-              </h2>
-              <p className="mt-2 text-sm text-slate-600">
-                Why policies and promises are not enough — and what evidence
-                reviewers expect to see.
-              </p>
-            </a>
-          </article>
-
-          <article>
-            <a
-              href="/insights/governance/policies-vs-evidence"
-              className="group"
-            >
-              <h2 className="text-xl font-semibold group-hover:underline">
-                Why AI policies fail audits — and evidence doesn’t
-              </h2>
-              <p className="mt-2 text-sm text-slate-600">
-                The structural gap between compliance posture and audit reality.
-              </p>
-            </a>
-          </article>
+          <ArticleLink
+            href="/insights/risk-insurance/ai-risk-underwriting"
+            title="What insurers will ask for when underwriting AI risk"
+            summary="How AI governance evidence increasingly shapes underwriting, exclusions, and coverage decisions."
+          />
+          <ArticleLink
+            href="/insights/ai-act/procurement-evidence"
+            title="What procurement teams actually look for under the EU AI Act"
+            summary="Why policies and promises are not enough — and what evidence reviewers expect to see."
+          />
+          <ArticleLink
+            href="/insights/governance/policies-vs-evidence"
+            title="Why AI policies fail audits — and evidence doesn’t"
+            summary="The structural gap between compliance posture and audit reality."
+          />
         </div>
       </section>
     </PublicPage>
   )
 }
+
+type ArticleProps = {
+  href: string
+  title: string
+  summary: string
+}
+
+function ArticleLink({ href, title, summary }: ArticleProps) {
+  return (
+    <article>
+      <a href={href} className="group">
+        <h2 className="text-xl font-semibold group-hover:underline">
+          {title}
+        </h2>
+        <p className="mt-2 text-sm text-slate-600">{summary}</p>
+      </a>
+    </article>
+  )
+}
+

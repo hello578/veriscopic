@@ -30,13 +30,12 @@ export default function RootLayout({
     <html lang="en">
       <body className="min-h-screen antialiased text-slate-900">
         <TooltipProvider delayDuration={150}>
-          {/* Ambient field */}
           <div className="min-h-screen bg-slate-50">
             <SiteHeader />
 
             {/* Paper surface */}
             <div className="relative mx-auto max-w-[1440px] bg-white shadow-[0_1px_0_rgba(15,23,42,0.04)]">
-              {/* Subtle paper grain overlay */}
+              {/* subtle grain unchanged */}
               <div
                 aria-hidden
                 className="pointer-events-none absolute inset-0 z-10"
@@ -51,20 +50,11 @@ export default function RootLayout({
                 }}
               />
 
-              {/* Global content frame (spacing + rhythm) */}
+              {/* Global content frame – match live */}
               <div className="relative z-20">
-                <div
-                  className="
-    mx-auto
-    max-w-[1120px]
-    px-6
-    pt-[96px]
-    pb-[160px]      /* ⬅️ GUARANTEED FOOTER BREATHING ROOM */
-  "
-                >
+                <div className="mx-auto max-w-[1120px] px-6 pt-[96px] pb-[160px]">
                   {children}
                 </div>
-
               </div>
             </div>
 
@@ -72,7 +62,6 @@ export default function RootLayout({
           </div>
         </TooltipProvider>
 
-        {/* Vercel tooling */}
         <Analytics />
         <SpeedInsights />
       </body>

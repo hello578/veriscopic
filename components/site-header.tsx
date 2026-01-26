@@ -1,5 +1,7 @@
 // components/site-header.tsx
 
+// components/site-header.tsx
+
 "use client"
 
 import Link from "next/link"
@@ -16,9 +18,10 @@ const HEADER_HEIGHT = 80
 // Public (SEO + trust) — always visible
 const PUBLIC_NAV_ITEMS = [
   { label: "Insights", href: "/insights" },
+  { label: "Charities", href: "/charities" }, // ✅ NEW
   { label: "Evidence", href: "/evidence" },
   { label: "Verify", href: "/verify" },
-  { label: "Pricing", href: "/pricing" }, // ✅ added
+  { label: "Pricing", href: "/pricing" },
 ]
 
 export function SiteHeader() {
@@ -30,14 +33,14 @@ export function SiteHeader() {
   const router = useRouter()
   const pathname = usePathname()
 
-  // ✅ derive organisationId safely from URL
+  // derive organisationId safely from URL
   const organisationId = useMemo(() => {
     if (!pathname) return null
     const parts = pathname.split("/").filter(Boolean)
     return parts.length > 0 ? parts[0] : null
   }, [pathname])
 
-  // ✅ private nav built only when org exists
+  // private nav only when org exists
   const PRIVATE_NAV_ITEMS = useMemo(() => {
     if (!organisationId) return []
     return [
@@ -59,8 +62,7 @@ export function SiteHeader() {
   }
 
   function isActive(href: string) {
-    if (href === "/dashboard") return pathname === href
-    return pathname?.startsWith(href)
+    return pathname === href || pathname?.startsWith(`${href}/`)
   }
 
   return (
@@ -147,8 +149,8 @@ export function SiteHeader() {
         </div>
       </header>
 
-      {/* Mobile overlay (unchanged styling) */}
-            {mobileMenuOpen && (
+      {/* Mobile overlay */}
+      {mobileMenuOpen && (
         <div
           className="vh-overlay"
           style={{ top: HEADER_HEIGHT }}
@@ -205,7 +207,7 @@ export function SiteHeader() {
         </div>
       )}
 
-      {/* ✅ STYLE BLOCK MUST LIVE INSIDE THE RETURN */}
+      {/* Styles */}
       <style>{`
         .vh-shell{
           max-width: 1120px;

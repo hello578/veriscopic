@@ -1,7 +1,5 @@
 // app/(org)/[organisationId]/layout.tsx
 
-// app/(org)/[organisationId]/layout.tsx
-
 import type { ReactNode } from 'react'
 
 export default function OrganisationLayout({

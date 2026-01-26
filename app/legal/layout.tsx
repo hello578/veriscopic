@@ -1,8 +1,5 @@
 // app/legal/layout.tsx
 
-import { SiteHeader } from "@/components/site-header"
-
-
 export default function LegalLayout({
   children,
 }: {
@@ -10,10 +7,8 @@ export default function LegalLayout({
 }) {
   return (
     <div className="bg-white text-slate-900">
-      <SiteHeader />
-      <main className="mx-auto max-w-3xl px-6 py-24">
-        {children}
-      </main>
+      {/* RootLayout already applied header + main pt/pb */}
+      <div className="mx-auto max-w-3xl px-6">{children}</div>
     </div>
   )
 }

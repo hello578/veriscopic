@@ -2,18 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
-/* --------------------------------------------------
-   Veriscopic Global Base Styles
-   SAFE: no semantic Tailwind utilities
--------------------------------------------------- */
+/* ==================================================
+   Veriscopic Global Styles (PROD SAFE)
+================================================== */
 
+/* --------------------
+   Design tokens
+-------------------- */
 :root {
   --radius: 0.75rem;
 
-  /* Neutral palette */
   --color-bg: #ffffff;
   --color-fg: #0f172a;
-
   --color-muted: #f8fafc;
   --color-border: #e5e7eb;
 
@@ -23,46 +23,128 @@
   --color-success-bg: #ecfdf5;
   --color-success-fg: #065f46;
 }
-[data-radix-popper-content-wrapper] {
-  isolation: isolate;
+
+/* --------------------
+   Fonts (TTF SAFE)
+-------------------- */
+
+/* Inter */
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/Inter_18pt-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/Inter_18pt-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/Inter_18pt-SemiBold.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
 }
 
-
-body {
-  background-color: var(--color-bg);
-  color: var(--color-fg);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+/* Lora – body text */
+@font-face {
+  font-family: "Lora";
+  src: url("/fonts/Lora-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Lora";
+  src: url("/fonts/Lora-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Lora";
+  src: url("/fonts/Lora-SemiBold.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Lora";
+  src: url("/fonts/Lora-Italic.ttf") format("truetype");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
 }
 
+/* Optional: keep Montserrat only if you still need it somewhere else
+@font-face {
+  font-family: "Montserrat";
+  src: url("/fonts/Montserrat-SemiBold.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+*/
+
+/* --------------------
+   Base reset
+-------------------- */
 @layer base {
   * {
     border-color: var(--color-border);
   }
-/* --------------------------------------------------
-   Radix Portal Isolation (DO NOT REMOVE)
-   Required for Tooltip / Popover / Dialog visibility
--------------------------------------------------- */
 
-  /* 🔒 Radix hard isolation – REQUIRED */
-[data-radix-popper-content-wrapper],
-[data-radix-portal] {
-  isolation: isolate;
-  background: transparent !important;
+  html {
+    background: var(--color-bg);
+  }
+
+  /* Body copy: Lora by default */
+  body {
+    margin: 0;
+    background-color: var(--color-bg);
+    color: var(--color-fg);
+    font-family: "Lora", system-ui, -apple-system, BlinkMacSystemFont,
+      "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    text-rendering: geometricPrecision;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  :focus-visible {
+    outline: 2px solid rgba(15, 23, 42, 0.25);
+    outline-offset: 2px;
+    border-radius: 8px;
+  }
+
+  /* Headings: Inter */
+  h1,
+  h2,
+  h3 {
+    font-family: "Inter", system-ui, sans-serif;
+    letter-spacing: -0.02em;
+  }
 }
 
-/* Force visible backgrounds for all popups */
-[data-radix-popper-content-wrapper] > *,
-[data-radix-portal] > * {
-  background-color: white !important;
-  opacity: 1 !important;
+/* --------------------
+   Wordmark (Inter Semibold)
+-------------------- */
+/* You already use .vh-wordmark in the header */
+.vh-wordmark {
+  font-family: "Inter", system-ui, sans-serif;
+  font-weight: 600;
 }
 
-/* --------------------------------------------------
-   CTA & BUTTON LAYOUT (CRITICAL)
--------------------------------------------------- */
-
-/* Force all Veriscopic buttons to behave as buttons */
+/* --------------------
+   Veriscopic system classes
+-------------------- */
 .v-btn {
   display: inline-flex;
   align-items: center;
@@ -70,25 +152,41 @@ body {
   white-space: nowrap;
 }
 
-/* Vertical CTA stacks must never collapse */
-.v-cta-stack > * {
-  display: block;
+.v-cta-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-/* Prevent inline-link collapsing inside content areas */
-/* Only buttons should be inline-flex */
-.v-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  white-space: nowrap;
+@media (min-width: 640px) {
+  .v-cta-stack {
+    flex-direction: row;
+    gap: 16px;
+  }
 }
 
-/* Links inside copy should flow naturally */
 .v-copy a:not(.v-btn) {
-  display: inline;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
 }
 
+/* Vertical rhythm */
+.v-copy > p {
+  margin: 0.75rem 0;
+  line-height: 1.65;
+}
 
+.v-copy > h2 {
+  margin-top: 2.5rem;
+  margin-bottom: 0.75rem;
+}
 
+.v-copy > h3 {
+  margin-top: 1.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.v-list {
+  margin: 0.75rem 0;
 }
