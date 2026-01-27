@@ -1,6 +1,5 @@
 // app/sitemap.ts
 
-
 import type { MetadataRoute } from "next"
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -8,6 +7,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date()
 
   return [
+    // Homepage — category anchor
     {
       url: baseUrl,
       lastModified: now,
@@ -15,18 +15,44 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1.0,
     },
 
-    // Core product pages
+    // ======================
+    // CORE CATEGORY PAGES
+    // ======================
+
     {
-      url: `${baseUrl}/evidence`,
+      url: `${baseUrl}/boards`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.95,
+    },
+    {
+      url: `${baseUrl}/boards/regulated`,
       lastModified: now,
       changeFrequency: "weekly",
       priority: 0.9,
     },
     {
-      url: `${baseUrl}/evidence/request`,
+      url: `${baseUrl}/boards/public-bodies`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/charities`,
       lastModified: now,
       changeFrequency: "monthly",
-      priority: 0.8,
+      priority: 0.75,
+    },
+
+    // ======================
+    // CORE PRODUCT PAGES
+    // ======================
+
+    {
+      url: `${baseUrl}/evidence`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.9,
     },
     {
       url: `${baseUrl}/verify`,
@@ -35,52 +61,63 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.6,
     },
 
-    // Insights hub
+    // (Intentionally NOT indexing /evidence/request or booking flows)
+
+    // ======================
+    // INSIGHTS HUB (AUTHORITY)
+    // ======================
+
     {
       url: `${baseUrl}/insights`,
       lastModified: now,
       changeFrequency: "monthly",
-      priority: 0.7,
+      priority: 0.8,
     },
 
-    // Authority articles
+    // ======================
+    // FLAGSHIP AUTHORITY ARTICLES
+    // ======================
+
     {
-      url: `${baseUrl}/insights/risk-insurance/ai-risk-underwriting`,
+      url: `${baseUrl}/insights/governance/policies-vs-evidence`,
       lastModified: now,
       changeFrequency: "yearly",
-      priority: 0.8,
+      priority: 0.85,
     },
     {
       url: `${baseUrl}/insights/ai-act/procurement-evidence`,
       lastModified: now,
       changeFrequency: "yearly",
-      priority: 0.8,
+      priority: 0.85,
     },
     {
-      url: `${baseUrl}/insights/governance/policies-vs-evidence`,
+      url: `${baseUrl}/insights/risk-insurance/ai-risk-underwriting`,
       lastModified: now,
       changeFrequency: "yearly",
-      priority: 0.8,
+      priority: 0.85,
     },
 
-    // Legal & trust pages
+    // ======================
+    // LEGAL & TRUST (LOW PRIORITY)
+    // ======================
+
     {
       url: `${baseUrl}/legal/privacy`,
       lastModified: now,
       changeFrequency: "yearly",
-      priority: 0.4,
+      priority: 0.3,
     },
     {
       url: `${baseUrl}/legal/terms`,
       lastModified: now,
       changeFrequency: "yearly",
-      priority: 0.4,
+      priority: 0.3,
     },
     {
       url: `${baseUrl}/legal/cookies`,
       lastModified: now,
       changeFrequency: "yearly",
-      priority: 0.3,
+      priority: 0.2,
     },
   ]
 }
