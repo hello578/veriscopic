@@ -1,4 +1,5 @@
-// app/charities/page.tsx
+
+// app/boards/charities/page.tsx
 
 import type { Metadata } from "next"
 import { FinalCTA } from "@/components/shared/final-cta"

@@ -18,7 +18,7 @@ const HEADER_HEIGHT = 80
 // Public (SEO + trust) — always visible
 const PUBLIC_NAV_ITEMS = [
   { label: "Insights", href: "/insights" },
-  { label: "Charities", href: "/charities" }, // ✅ NEW
+  { label: "Boards", href: "/boards" }, // ✅ NEW
   { label: "Evidence", href: "/evidence" },
   { label: "Verify", href: "/verify" },
   { label: "Pricing", href: "/pricing" },
