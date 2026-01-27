@@ -1,5 +1,3 @@
-// app/sitemap.ts
-
 import type { MetadataRoute } from "next"
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -7,7 +5,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date()
 
   return [
-    // Homepage — category anchor
+    // ======================
+    // HOMEPAGE — CATEGORY ANCHOR
+    // ======================
     {
       url: baseUrl,
       lastModified: now,
@@ -16,9 +16,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
 
     // ======================
-    // CORE CATEGORY PAGES
+    // BOARD & BUYER PAGES (WHO IT'S FOR)
     // ======================
-
     {
       url: `${baseUrl}/boards`,
       lastModified: now,
@@ -38,21 +37,32 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.9,
     },
     {
-      url: `${baseUrl}/charities`,
+      url: `${baseUrl}/boards/charities`,
       lastModified: now,
       changeFrequency: "monthly",
-      priority: 0.75,
+      priority: 0.8,
     },
 
     // ======================
-    // CORE PRODUCT PAGES
+    // CORE CATEGORY / PRODUCT PILLARS
     // ======================
-
     {
       url: `${baseUrl}/evidence`,
       lastModified: now,
       changeFrequency: "weekly",
+      priority: 0.95,
+    },
+    {
+      url: `${baseUrl}/evidence-pack`,
+      lastModified: now,
+      changeFrequency: "weekly",
       priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/drift/how-it-works`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.85,
     },
     {
       url: `${baseUrl}/verify`,
@@ -61,12 +71,41 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.6,
     },
 
-    // (Intentionally NOT indexing /evidence/request or booking flows)
+    // ======================
+    // GOVERNANCE THEORY (CATEGORY OWNERSHIP)
+    // ======================
+    {
+      url: `${baseUrl}/governance-evidence-model`,
+      lastModified: now,
+      changeFrequency: "yearly",
+      priority: 0.85,
+    },
+    {
+      url: `${baseUrl}/governance-principles`,
+      lastModified: now,
+      changeFrequency: "yearly",
+      priority: 0.8,
+    },
+
+    // ======================
+    // COMPARISON / CHALLENGER PAGES
+    // ======================
+    {
+      url: `${baseUrl}/compare/evidence-vs-compliance-automation`,
+      lastModified: now,
+      changeFrequency: "yearly",
+      priority: 0.75,
+    },
+    {
+      url: `${baseUrl}/compare/why-ai-compliance-checklists-fail`,
+      lastModified: now,
+      changeFrequency: "yearly",
+      priority: 0.75,
+    },
 
     // ======================
     // INSIGHTS HUB (AUTHORITY)
     // ======================
-
     {
       url: `${baseUrl}/insights`,
       lastModified: now,
@@ -74,12 +113,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     },
 
-    // ======================
-    // FLAGSHIP AUTHORITY ARTICLES
-    // ======================
-
+    // Flagship authority pieces
     {
       url: `${baseUrl}/insights/governance/policies-vs-evidence`,
+      lastModified: now,
+      changeFrequency: "yearly",
+      priority: 0.85,
+    },
+    {
+      url: `${baseUrl}/insights/governance-evidence/from-policy-to-proof`,
       lastModified: now,
       changeFrequency: "yearly",
       priority: 0.85,
@@ -98,9 +140,30 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
 
     // ======================
-    // LEGAL & TRUST (LOW PRIORITY)
+    // TRUST / COMMERCIAL
     // ======================
+    {
+      url: `${baseUrl}/pricing`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.6,
+    },
+    {
+      url: `${baseUrl}/security`,
+      lastModified: now,
+      changeFrequency: "yearly",
+      priority: 0.5,
+    },
+    {
+      url: `${baseUrl}/press`,
+      lastModified: now,
+      changeFrequency: "yearly",
+      priority: 0.4,
+    },
 
+    // ======================
+    // LEGAL (LOW PRIORITY)
+    // ======================
     {
       url: `${baseUrl}/legal/privacy`,
       lastModified: now,
