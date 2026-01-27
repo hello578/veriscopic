@@ -13,6 +13,7 @@ export const metadata: Metadata = {
 
 // Header + footer + global spacing owned by app/layout.tsx.
 
+
 export default function HomePage() {
   return (
     <div className="bg-white text-slate-900">

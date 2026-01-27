@@ -1,11 +1,13 @@
+
 // app/boards/regulated/page.tsx
 
 import type { Metadata } from "next"
+import Link from "next/link"
 import { PublicPage } from "@/components/public-page"
 import { FinalCTA } from "@/components/shared/final-cta"
 
 export const metadata: Metadata = {
-  title: "Regulated & Financial Services | Veriscopic",
+  title: "Regulated & Financial Services Boards | Veriscopic",
   description:
     "Board-level governance evidence for regulated and financial services organisations using digital and AI-assisted systems.",
   keywords: [
@@ -49,23 +51,31 @@ export default function RegulatedBoardsPage() {
           <div className="v-container v-copy">
             <h2>When regulation intensifies, boards are expected to show proof</h2>
             <p>
-              Banks, lenders, insurers, and regulated firms increasingly rely on
-              complex digital and AI-assisted systems across credit, fraud,
-              underwriting, pricing, operations, and customer decision-making.
+              Regulated organisations increasingly rely on complex digital and
+              AI-assisted systems across credit, fraud, underwriting, pricing,
+              operations, and customer decision-making.
             </p>
             <p>
               Boards are therefore expected to demonstrate{" "}
-              <strong>active oversight</strong> — not just the existence of
-              frameworks, policies, or delegated controls.
+              <strong>active oversight</strong> — not just policy intent or
+              delegated control frameworks.
             </p>
             <p>
-              Under scrutiny, the question becomes:
+              Under supervisory or audit scrutiny, the question becomes:
             </p>
             <p>
               <strong>
-                “What evidence shows the board understood, governed, and oversaw
-                these systems at the time?”
+                “What evidence shows the board governed these systems at the
+                time decisions were made?”
               </strong>
+            </p>
+
+            <p className="mt-6 text-sm text-slate-600">
+              This page sits within Veriscopic’s work on{" "}
+              <Link href="/boards" className="underline">
+                governance evidence for boards
+              </Link>
+              .
             </p>
           </div>
         </section>
@@ -77,70 +87,52 @@ export default function RegulatedBoardsPage() {
             <ul className="v-list">
               <li>
                 A board-level register of material digital and AI-assisted
-                systems, aligned to risk and regulatory exposure
+                systems, aligned to regulatory exposure
               </li>
               <li>
                 Time-stamped governance evidence showing ownership,
                 accountability, and escalation structures in force
               </li>
               <li>
-                Audit-ready Evidence Packs (PDF) suitable for regulators,
+                Audit-ready Evidence Packs suitable for regulators,
                 supervisors, insurers, or internal audit
               </li>
               <li>
-                Governance drift snapshots identifying where documentation or
-                oversight no longer reflects system reality
+                Governance drift snapshots identifying divergence between
+                documentation and system reality
               </li>
             </ul>
             <p>
               The result is a <strong>defensible governance record</strong> —
-              independent of operational dashboards or internal tooling.
+              independent of operational dashboards.
+            </p>
+
+            <p className="mt-4">
+              Learn more about{" "}
+              <Link href="/evidence" className="underline">
+                Veriscopic Evidence Packs
+              </Link>
+              .
             </p>
           </div>
         </section>
 
-        {/* HOW FIRMS ENGAGE */}
+        {/* CROSS NAV */}
         <section className="v-section">
           <div className="v-container v-copy">
-            <h2>How regulated organisations typically engage</h2>
-            <p>
-              Most regulated firms begin with a tightly scoped{" "}
-              <strong>board-level governance evidence pilot</strong>.
-            </p>
-            <p>This enables boards and committees to:</p>
+            <h2>Related board contexts</h2>
             <ul className="v-list">
               <li>
-                See what governance evidence looks like under regulatory
-                scrutiny
+                <Link href="/boards/public-bodies" className="underline">
+                  Governance evidence for public & strategic bodies
+                </Link>
               </li>
               <li>
-                Identify gaps between policy, delegation, and operational
-                reality
-              </li>
-              <li>
-                Establish a baseline record before supervisory or audit review
+                <Link href="/charities" className="underline">
+                  Trustee-ready governance evidence for charities & non-profits
+                </Link>
               </li>
             </ul>
-            <p>
-              Ongoing evidence continuity can then be maintained proportionately
-              as systems evolve.
-            </p>
-          </div>
-        </section>
-
-        {/* REASSURANCE */}
-        <section className="v-section v-muted">
-          <div className="v-container v-copy">
-            <h2>Designed to support boards — not replace controls</h2>
-            <p>
-              Veriscopic does not assess compliance, score risk, or automate
-              regulatory decisions.
-            </p>
-            <p>
-              It preserves <strong>evidence of oversight</strong> — allowing
-              boards to demonstrate how governance was exercised when it
-              mattered.
-            </p>
           </div>
         </section>
 
@@ -149,3 +141,4 @@ export default function RegulatedBoardsPage() {
     </PublicPage>
   )
 }
+

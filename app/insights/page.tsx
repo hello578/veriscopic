@@ -23,23 +23,42 @@ export default function InsightsPage() {
       {/* Content */}
       <section className="mx-auto max-w-3xl px-6 py-20">
         <div className="space-y-10">
+          {/* Flagship board paper */}
+          <ArticleLink
+            href="/insights/governance-evidence/from-policy-to-proof"
+            title="From policy to proof: why boards are being asked to evidence AI governance"
+            summary="A board-level briefing on the growing gap between governance intent and defensible, system-level evidence."
+          />
+
+          {/* External scrutiny lenses */}
           <ArticleLink
             href="/insights/risk-insurance/ai-risk-underwriting"
             title="What insurers will ask for when underwriting AI risk"
             summary="How AI governance evidence increasingly shapes underwriting, exclusions, and coverage decisions."
           />
+
           <ArticleLink
             href="/insights/ai-act/procurement-evidence"
             title="What procurement teams actually look for under the EU AI Act"
             summary="Why policies and promises are not enough — and what evidence reviewers expect to see."
           />
+
+          {/* Comparative framing (quietly anti-checklist / anti-automation) */}
           <ArticleLink
-            href="/insights/governance/policies-vs-evidence"
-            title="Why AI policies fail audits — and evidence doesn’t"
-            summary="The structural gap between compliance posture and audit reality."
+            href="/compare/evidence-vs-compliance-automation"
+            title="Evidence-based AI governance vs compliance automation platforms"
+            summary="Why checklist- and dashboard-led tools struggle under audit, procurement, and regulatory scrutiny."
+          />
+
+          <ArticleLink
+            href="/compare/why-ai-compliance-checklists-fail"
+            title="Why AI compliance checklists fail procurement review"
+            summary="The structural limits of self-attestation — and why evidence changes the review dynamic."
           />
         </div>
       </section>
+
+
     </PublicPage>
   )
 }

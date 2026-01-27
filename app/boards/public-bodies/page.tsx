@@ -1,6 +1,8 @@
+
 // app/boards/public-bodies/page.tsx
 
 import type { Metadata } from "next"
+import Link from "next/link"
 import { PublicPage } from "@/components/public-page"
 import { FinalCTA } from "@/components/shared/final-cta"
 
@@ -55,17 +57,25 @@ export default function PublicBodiesBoardsPage() {
             </p>
             <p>
               Boards are expected to demonstrate{" "}
-              <strong>transparent, proportionate oversight</strong> — especially
-              where systems affect citizens, public funds, or democratic trust.
+              <strong>transparent, proportionate oversight</strong> —
+              particularly where systems affect citizens or public funds.
             </p>
             <p>
-              Under review, inquiry, or investigation, the central question is:
+              Under inquiry or investigation, the central question is:
             </p>
             <p>
               <strong>
                 “What evidence shows governance was in place at the time
                 decisions were made?”
               </strong>
+            </p>
+
+            <p className="mt-6 text-sm text-slate-600">
+              Part of Veriscopic’s work on{" "}
+              <Link href="/boards" className="underline">
+                governance evidence for boards
+              </Link>
+              .
             </p>
           </div>
         </section>
@@ -84,7 +94,7 @@ export default function PublicBodiesBoardsPage() {
                 sponsorship, and oversight structures
               </li>
               <li>
-                Board-ready Evidence Packs suitable for inquiry, audit,
+                Board-ready Evidence Packs suitable for audit, inquiry,
                 parliamentary, or ministerial review
               </li>
               <li>
@@ -96,49 +106,33 @@ export default function PublicBodiesBoardsPage() {
               The outcome is a <strong>durable public record</strong> of
               governance — not a transient assurance narrative.
             </p>
+
+            <p className="mt-4">
+              See how this evidence is captured in{" "}
+              <Link href="/evidence" className="underline">
+                Veriscopic Evidence Packs
+              </Link>
+              .
+            </p>
           </div>
         </section>
 
-        {/* HOW BODIES ENGAGE */}
+        {/* CROSS NAV */}
         <section className="v-section">
           <div className="v-container v-copy">
-            <h2>How public and strategic bodies typically engage</h2>
-            <p>
-              Engagements usually begin with a scoped{" "}
-              <strong>governance evidence pilot</strong> aligned to board or
-              committee priorities.
-            </p>
-            <p>This allows boards to:</p>
+            <h2>Related board contexts</h2>
             <ul className="v-list">
               <li>
-                Establish a defensible baseline of governance evidence
+                <Link href="/boards/regulated" className="underline">
+                  Governance evidence for regulated & financial services boards
+                </Link>
               </li>
               <li>
-                Prepare for external scrutiny before it occurs
-              </li>
-              <li>
-                Demonstrate proportional oversight without operational burden
+                <Link href="/charities" className="underline">
+                  Trustee-ready governance evidence for charities & non-profits
+                </Link>
               </li>
             </ul>
-            <p>
-              Evidence continuity can then be maintained as systems, mandates,
-              or risks evolve.
-            </p>
-          </div>
-        </section>
-
-        {/* REASSURANCE */}
-        <section className="v-section v-muted">
-          <div className="v-container v-copy">
-            <h2>Built for accountability — not automation</h2>
-            <p>
-              Veriscopic does not make decisions, assess compliance, or replace
-              public accountability mechanisms.
-            </p>
-            <p>
-              It preserves evidence of how governance was exercised — enabling
-              boards to demonstrate responsible stewardship when required.
-            </p>
           </div>
         </section>
 
