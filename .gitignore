@@ -46,3 +46,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Documentation hygiene
+/docs/system-status/
+/docs/internal/
+/docs/drafts/
+/docs/private/
+/docs/*.md
+!/docs/public/
+!/docs/public/**/*.md
+
