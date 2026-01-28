@@ -97,6 +97,15 @@ export default function PressPage() {
         </li>
       </ul>
 
+      <ul>
+        <li>
+          <a href="/press/accountability-based-evidence">
+            Veriscopic introduces accountability-based evidence for AI governance
+          </a>
+        </li>
+      </ul>
+
+
       <h2>Press and research enquiries</h2>
 
       <p>

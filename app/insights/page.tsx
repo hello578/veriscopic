@@ -29,6 +29,12 @@ export default function InsightsPage() {
             description="Core briefings on why governance is shifting from intent to defensible, system-level evidence."
           >
             <ArticleLink
+              href="/insights/governance-evidence/accountability-as-evidence"
+              title="Why accountability is becoming the core unit of AI governance"
+              summary="Why boards, regulators, and insurers increasingly expect accountability to be fixed in time as evidence."
+            />
+
+            <ArticleLink
               href="/insights/governance-evidence/from-policy-to-proof"
               title="From policy to proof: why boards are being asked to evidence AI governance"
               summary="A board-level briefing on the growing gap between governance intent and defensible, system-level evidence."
