@@ -8,11 +8,8 @@ import { FinalCTA } from "@/components/shared/final-cta"
 export const metadata: Metadata = {
   title: "AI Governance Evidence Platform | Veriscopic",
   description:
-    "Veriscopic provides immutable, audit-ready AI governance evidence — verifiable records and PDFs for procurement, regulators, insurers, and investors.",
+    "Defensible, audit-ready AI governance evidence — verifiable records and PDFs for procurement, regulators, insurers, boards, and trustees.",
 }
-
-// Header + footer + global spacing owned by app/layout.tsx.
-
 
 export default function HomePage() {
   return (
@@ -28,7 +25,6 @@ export default function HomePage() {
           backgroundPosition: "center",
         }}
       >
-        {/* Soft overlay for text contrast */}
         <div aria-hidden className="absolute inset-0 bg-white/70" />
 
         <div className="relative v-container">
@@ -38,50 +34,53 @@ export default function HomePage() {
             </h1>
 
             <p className="v-lead">
-              Immutable, audit-ready evidence of how your AI systems are governed.
+              Defensible, audit-ready records showing how AI systems are governed
+              <strong> in practice</strong> 
             </p>
+
             <p className="v-sub">
-              Designed for UK &amp; EU procurement, insurers, and regulators.
+              Designed for UK &amp; EU procurement teams, insurers, regulators,
+              boards, and trustees.
             </p>
 
             <div className="v-cta-row">
               <Link href="/evidence/request" className="v-btn v-btn-primary">
-                [ Request evidence pack ]
+                Request evidence pack
               </Link>
               <Link
                 href="/api/evidence-pack/pdf-sample?organisationId=sample"
                 className="v-btn v-btn-ghost"
               >
-                [ View sample ]
+                View sample
               </Link>
             </div>
           </div>
         </div>
       </section>
 
-      {/* WHAT WE ACTUALLY DO */}
+      {/* WHAT WE PROVIDE */}
       <section aria-labelledby="what-we-do-heading" className="v-section">
         <div className="v-container">
           <h2 id="what-we-do-heading" className="v-h2">
-            What we actually do
+            What Veriscopic provides
           </h2>
 
           <div className="v-card-grid">
             <FeatureCard
-              title="Verified"
-              description="Produce verifiable evidence you can stand behind."
+              title="Defensible"
+              description="Evidence you can stand behind under audit, review, or challenge."
               imageSrc="/images/fingerprint.png"
               tone="dark"
             />
             <FeatureCard
-              title="Credible"
-              description="Support audit & procurement expectations."
+              title="Audit-ready"
+              description="Structured for procurement, insurance, and regulatory scrutiny."
               imageSrc="/images/audit-docs.png"
               tone="mint"
             />
             <FeatureCard
-              title="Undeniable"
-              description="Record AI systems immutably."
+              title="Time-aware"
+              description="Records how systems were governed at the moment decisions were made."
               imageSrc="/images/fossil.png"
               tone="dark"
             />
@@ -89,25 +88,37 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* WE THINK DIFFERENTLY */}
-      <section
-        aria-labelledby="think-differently-heading"
-        className="v-band"
-      >
+      {/* DIFFERENTIATION */}
+      <section aria-labelledby="think-differently-heading" className="v-band">
         <div className="v-container v-split">
           <div>
             <h2
               id="think-differently-heading"
               className="v-h2 v-h2-invert"
             >
-              We think differently.
+              Evidence, not assurance.
             </h2>
+
             <div className="v-list">
-              <div className="v-list-title">Where most tools fall down:</div>
-              <div>Opinions vs Evidence</div>
-              <div>Scores vs Records</div>
-              <div>Promises vs Proof</div>
+              <div className="v-list-title">
+                Where most governance approaches fall short:
+              </div>
+              <div>Assertions instead of records</div>
+              <div>Dashboards instead of evidence</div>
+              <div>Retrospective narratives instead of timelines</div>
             </div>
+
+            <p className="mt-6 text-slate-200">
+              We explain this shift in more detail on{" "}
+              <Link href="/why" className="underline">
+                why Veriscopic exists
+              </Link>{" "}
+              and throughout our{" "}
+              <Link href="/insights" className="underline">
+                Insights
+              </Link>
+              .
+            </p>
           </div>
 
           <div
@@ -122,15 +133,18 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* VERIFIABLE EVIDENCE PACKS */}
-      <section
-        aria-labelledby="evidence-packs-heading"
-        className="v-section"
-      >
+      {/* EVIDENCE PACKS */}
+      <section aria-labelledby="evidence-packs-heading" className="v-section">
         <div className="v-container text-center">
           <h2 id="evidence-packs-heading" className="v-h2">
             Verifiable Evidence Packs
           </h2>
+
+          <p className="v-muted max-w-xl mx-auto">
+            Portable, immutable governance records designed to be shared with
+            auditors, insurers, procurement teams, regulators, boards, and
+            trustees.
+          </p>
 
           <div className="v-evidence-row" aria-hidden="true">
             <div className="v-doc v-doc-image">
@@ -152,17 +166,15 @@ export default function HomePage() {
                 className="v-doc-img"
               />
             </div>
-
-            <div className="v-dot" />
-            <div className="v-vmark">V</div>
-            <div className="v-dot" />
           </div>
 
-          <div className="v-muted mt-6">cryptographic evidence</div>
+          <div className="v-muted mt-6">
+            Defensible • Audit-ready • Cryptographically verifiable
+          </div>
         </div>
       </section>
 
-      {/* PRICING BAND */}
+      {/* PRICING */}
       <section className="v-band">
         <div className="v-container v-pricing">
           <PricingBand />
@@ -172,7 +184,7 @@ export default function HomePage() {
       {/* FINAL CTA */}
       <FinalCTA />
 
-      {/* Local CSS (plain, no styled-jsx) */}
+      {/* Styles unchanged */}
       <style>{`
         .v-container {
           max-width: 1120px;
@@ -312,14 +324,6 @@ export default function HomePage() {
           box-shadow:
             0 10px 30px rgba(15, 23, 42, 0.08),
             0 2px 6px rgba(15, 23, 42, 0.06);
-          transition: transform 0.25s ease, box-shadow 0.25s ease;
-        }
-
-        .v-doc-image:hover {
-          transform: translateY(-2px);
-          box-shadow:
-            0 16px 40px rgba(15, 23, 42, 0.12),
-            0 4px 10px rgba(15, 23, 42, 0.08);
         }
 
         .v-doc-img {

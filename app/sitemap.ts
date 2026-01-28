@@ -16,25 +16,35 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
 
     // ======================
+    // WHY / POSITIONING (FOUNDATIONAL)
+    // ======================
+    {
+      url: `${baseUrl}/why`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.95,
+    },
+
+    // ======================
     // BOARD & BUYER PAGES (WHO IT'S FOR)
     // ======================
     {
       url: `${baseUrl}/boards`,
       lastModified: now,
       changeFrequency: "weekly",
-      priority: 0.95,
+      priority: 0.9,
     },
     {
       url: `${baseUrl}/boards/regulated`,
       lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.9,
+      changeFrequency: "monthly",
+      priority: 0.85,
     },
     {
       url: `${baseUrl}/boards/public-bodies`,
       lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.9,
+      changeFrequency: "monthly",
+      priority: 0.85,
     },
     {
       url: `${baseUrl}/boards/charities`,
@@ -44,7 +54,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
 
     // ======================
-    // CORE CATEGORY / PRODUCT PILLARS
+    // CORE PRODUCT / CAPABILITY PILLARS
     // ======================
     {
       url: `${baseUrl}/evidence`,
@@ -53,7 +63,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.95,
     },
     {
-      url: `${baseUrl}/evidence-pack`,
+      url: `${baseUrl}/evidence-packs`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/drift`,
       lastModified: now,
       changeFrequency: "weekly",
       priority: 0.9,
@@ -61,18 +77,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
     {
       url: `${baseUrl}/drift/how-it-works`,
       lastModified: now,
-      changeFrequency: "weekly",
+      changeFrequency: "monthly",
       priority: 0.85,
     },
     {
       url: `${baseUrl}/verify`,
       lastModified: now,
-      changeFrequency: "monthly",
+      changeFrequency: "yearly",
       priority: 0.6,
     },
 
     // ======================
-    // GOVERNANCE THEORY (CATEGORY OWNERSHIP)
+    // GOVERNANCE THEORY / CATEGORY OWNERSHIP
     // ======================
     {
       url: `${baseUrl}/governance-evidence-model`,
@@ -110,30 +126,44 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `${baseUrl}/insights`,
       lastModified: now,
       changeFrequency: "monthly",
-      priority: 0.8,
-    },
-
-    // Flagship authority pieces
-    {
-      url: `${baseUrl}/insights/governance/policies-vs-evidence`,
-      lastModified: now,
-      changeFrequency: "yearly",
       priority: 0.85,
     },
+
+    // Flagship board / regulatory authority pieces
     {
       url: `${baseUrl}/insights/governance-evidence/from-policy-to-proof`,
       lastModified: now,
       changeFrequency: "yearly",
-      priority: 0.85,
+      priority: 0.9,
     },
     {
       url: `${baseUrl}/insights/ai-act/procurement-evidence`,
       lastModified: now,
       changeFrequency: "yearly",
-      priority: 0.85,
+      priority: 0.9,
     },
     {
       url: `${baseUrl}/insights/risk-insurance/ai-risk-underwriting`,
+      lastModified: now,
+      changeFrequency: "yearly",
+      priority: 0.9,
+    },
+
+    // Sector-specific authority (new emphasis)
+    {
+      url: `${baseUrl}/insights/housing/evidencing-digital-governance`,
+      lastModified: now,
+      changeFrequency: "yearly",
+      priority: 0.85,
+    },
+    {
+      url: `${baseUrl}/insights/health/evidencing-ai-governance`,
+      lastModified: now,
+      changeFrequency: "yearly",
+      priority: 0.85,
+    },
+    {
+      url: `${baseUrl}/insights/charity/trustee-governance-evidence`,
       lastModified: now,
       changeFrequency: "yearly",
       priority: 0.85,
@@ -146,7 +176,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `${baseUrl}/pricing`,
       lastModified: now,
       changeFrequency: "monthly",
-      priority: 0.6,
+      priority: 0.65,
     },
     {
       url: `${baseUrl}/security`,
