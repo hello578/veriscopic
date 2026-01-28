@@ -1,6 +1,7 @@
 // app/insights/governance-evidence/from-policy-to-proof/page.tsx
 
 import type { Metadata } from "next"
+import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: "From Policy to Proof: Why boards are being asked to evidence digital & AI governance",
@@ -218,13 +219,15 @@ export default function FromPolicyToProofPage() {
       <p>
         <em>
           Related reading:{" "}
-          <a href="/compare/evidence-vs-compliance-automation">
-            Evidence-based AI governance vs compliance automation
-          </a>
+          <Link href="/compare/evidence-vs-compliance-automation">
+            Evidence-based AI governance vs compliance automation platforms
+          </Link>
+
           ,{" "}
-          <a href="/compare/why-ai-compliance-checklists-fail">
-            Why AI compliance checklists fail
-          </a>
+          <Link href="/compare/why-ai-compliance-checklists-fail">
+            Why AI compliance checklists fail procurement review
+          </Link>
+
         </em>
       </p>
     </article>

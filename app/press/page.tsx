@@ -1,7 +1,7 @@
-
 // app/press/page.tsx
 
 import type { Metadata } from "next"
+import Link from "next/link"
 
 export const metadata: Metadata = {
   title: "Press & Public Statements",
@@ -60,51 +60,36 @@ export default function PressPage() {
       <p>
         Veriscopic is an evidence-first governance platform designed for
         organisations facing increasing scrutiny of digital and AI systems from
-        procurement teams, regulators, insurers, and investors. While many
-        governance programmes focus on policies, checklists, and dashboards,
-        external review typically hinges on a different question: can an
-        organisation produce defensible records showing how specific systems are
-        governed in practice?
+        procurement teams, regulators, insurers, and investors.
       </p>
 
       <p>
         Veriscopic addresses that gap by capturing governance decisions, system
         ownership, and supporting artefacts as structured, timestamped records.
-        These records can be compiled into audit-ready evidence packs that are
-        easier to review, harder to misinterpret, and better aligned to external
-        scrutiny than self-attestation alone.
       </p>
 
       <h2>Canonical briefings</h2>
 
-      <p>
-        For written briefings intended to be referenced and shared, see:
-      </p>
-
       <ul>
         <li>
-          <a href="/insights">Insights</a>
+          <Link href="/insights">Insights</Link>
         </li>
         <li>
-          <a href="/compare/evidence-vs-compliance-automation">
+          <Link href="/compare/evidence-vs-compliance-automation">
             Evidence-based AI governance vs compliance automation platforms
-          </a>
+          </Link>
         </li>
         <li>
-          <a href="/compare/why-ai-compliance-checklists-fail">
+          <Link href="/compare/why-ai-compliance-checklists-fail">
             Why AI compliance checklists fail procurement review
-          </a>
+          </Link>
         </li>
-      </ul>
-
-      <ul>
         <li>
-          <a href="/press/accountability-based-evidence">
+          <Link href="/press/accountability-based-evidence">
             Veriscopic introduces accountability-based evidence for AI governance
-          </a>
+          </Link>
         </li>
       </ul>
-
 
       <h2>Press and research enquiries</h2>
 
@@ -118,8 +103,8 @@ export default function PressPage() {
 
       <p>
         <em>
-          Note: Please use the boilerplate above when referencing Veriscopic to
-          ensure accuracy and consistency.
+          Please use the boilerplate above when referencing Veriscopic to ensure
+          accuracy and consistency.
         </em>
       </p>
     </article>

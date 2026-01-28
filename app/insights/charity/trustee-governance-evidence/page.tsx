@@ -2,6 +2,7 @@
 // app/insights/charity/trustee-governance-evidence/page.tsx
 
 import type { Metadata } from "next"
+import Link from 'next/link'
 
 export const metadata: Metadata = {
     title:
@@ -158,14 +159,15 @@ export default function CharityGovernanceEvidencePage() {
             <p>
                 <em>
                     Related reading:{" "}
-                    <a href="/compare/evidence-vs-compliance-automation">
+                    <Link href="/compare/evidence-vs-compliance-automation">
                         Evidence-based AI governance vs compliance automation platforms
-                    </a>
+                    </Link>
+
                     ,{" "}
-                    <a href="/insights/governance-evidence/from-policy-to-proof">
-                        From policy to proof: why boards are being asked to evidence AI
-                        governance
-                    </a>
+                    <Link href="/insights/governance-evidence/from-policy-to-proof">
+                        From policy to proof: why boards are being asked to evidence AI governance
+                    </Link>
+
                 </em>
             </p>
         </article>

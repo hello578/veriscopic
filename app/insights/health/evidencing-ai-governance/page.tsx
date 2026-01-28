@@ -2,21 +2,22 @@
 // app/insights/health/evidencing-ai-governance/page.tsx
 
 import type { Metadata } from "next"
+import Link from "next/link"
 
 export const metadata: Metadata = {
-    title:
-        "How health bodies are expected to evidence AI and digital governance under external review",
-    description:
-        "Why health-adjacent public bodies are increasingly expected to evidence how AI and digital systems are governed in practice — and why clinical assurance and policies alone no longer satisfy regulators, auditors, and procurement teams.",
+  title:
+    "How health bodies are expected to evidence AI and digital governance under external review",
+  description:
+    "Why health-adjacent public bodies are increasingly expected to evidence how AI and digital systems are governed in practice.",
 }
 
 export default function HealthGovernanceEvidencePage() {
-    return (
-        <article className="prose prose-slate mx-auto max-w-3xl px-6 py-24">
-            <h1>
-                How health bodies are expected to evidence AI and digital governance under
-                external review
-            </h1>
+  return (
+    <article className="prose prose-slate mx-auto max-w-3xl px-6 py-24">
+      <h1>
+        How health bodies are expected to evidence AI and digital governance under
+        external review
+      </h1>
 
             <p>
                 Health-adjacent public bodies are under growing pressure to demonstrate
@@ -163,20 +164,20 @@ export default function HealthGovernanceEvidencePage() {
 
             <hr />
 
-            <p>
-                <em>
-                    Related reading:{" "}
-                    <a href="/insights/governance-evidence/from-policy-to-proof">
-                        From policy to proof: why boards are being asked to evidence AI
-                        governance
-                    </a>
-                    ,{" "}
-                    <a href="/compare/why-ai-compliance-checklists-fail">
-                        Why AI compliance checklists fail procurement review
-                    </a>
-                </em>
-            </p>
-        </article>
-    )
+      <p>
+        <em>
+          Related reading:{" "}
+          <Link href="/insights/governance-evidence/from-policy-to-proof">
+            From policy to proof: why boards are being asked to evidence AI
+            governance
+          </Link>
+          ,{" "}
+          <Link href="/compare/why-ai-compliance-checklists-fail">
+            Why AI compliance checklists fail procurement review
+          </Link>
+        </em>
+      </p>
+    </article>
+  )
 }
 

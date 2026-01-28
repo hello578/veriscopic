@@ -1,5 +1,6 @@
 
 // app/(org)/[organisationId]/dashboard/components/responsibility-table.tsx
+// app/(org)/[organisationId]/dashboard/components/responsibility-table.tsx
 
 'use client'
 
@@ -42,19 +43,27 @@ export function ResponsibilityTable({
             Accountability & responsibility
           </h3>
           <p className="text-xs text-muted-foreground">
-            How decision accountability becomes auditable evidence
+            How organisational accountability is expressed through role-level responsibility
           </p>
         </div>
       </CardHeader>
 
       <CardContent className="space-y-4 px-6 pt-0 pb-6">
-        {/* Explanatory copy (unchanged, board-safe) */}
+        {/* Primary explanation */}
         <p className="text-sm text-slate-700 leading-relaxed">
-          The Responsibility Map records <strong>who is accountable for key
-          governance decisions</strong>, the <strong>evidence that must exist</strong>{' '}
-          because of those decisions, and <strong>when responsibilities must be
-          reviewed</strong>. Responsibility records are organisation-level
-          declarations and are included in Evidence Packs.
+          This section records <strong>role-level responsibility mappings</strong> that sit
+          beneath your organisation’s declared accountability framework. Each record defines{' '}
+          <strong>who is accountable for a specific governance decision</strong>, the{' '}
+          <strong>evidence that must exist because of that decision</strong>, and{' '}
+          <strong>when that responsibility must be reviewed</strong>.
+        </p>
+
+        {/* Clarifier to avoid contradiction */}
+        <p className="text-xs text-slate-600 leading-relaxed">
+          Organisational accountability has already been declared at the governance level.
+          Responsibility records below provide <em>additional granularity</em> and strengthen
+          audit-readiness, but are not required to assert organisational ownership or operation
+          of AI systems.
         </p>
 
         {/* Table */}
@@ -70,13 +79,13 @@ export function ResponsibilityTable({
                     Decision surface
                   </th>
                   <th className="px-4 py-2 text-left font-medium">
-                    Evidence produced
+                    Evidence required
                   </th>
                   <th className="px-4 py-2 text-left font-medium">
                     Review trigger
                   </th>
                   <th className="px-4 py-2 text-left font-medium">
-                    Current status
+                    Status
                   </th>
                 </tr>
               </thead>
@@ -111,19 +120,20 @@ export function ResponsibilityTable({
         ) : (
           <div className="rounded-md border bg-slate-50 p-3">
             <p className="text-xs text-slate-600">
-              No responsibility records have been declared yet. Declared
-              responsibilities will appear here and be included in Evidence
-              Packs.
+              No role-level responsibility records have been declared yet.
+              This is common at early stages. Declared responsibilities will
+              appear here and be included in future Evidence Packs.
             </p>
           </div>
         )}
 
-        {/* Footer clarification */}
+        {/* Legal / assurance boundary */}
         <div className="rounded-md border bg-slate-50 p-3">
           <p className="text-xs text-slate-600 leading-relaxed">
             Responsibility records do not assign personal liability, certify
-            compliance, or monitor behaviour. Changes over time are tracked
-            through Evidence Packs and Drift detection.
+            compliance, or monitor behaviour. They record declared governance
+            structures only. Changes over time are tracked through Evidence
+            Packs and cryptographic drift detection.
           </p>
         </div>
       </CardContent>

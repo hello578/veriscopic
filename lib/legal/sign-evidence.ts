@@ -1,6 +1,21 @@
+
+// lib/legal/sign-evidence.ts
+
 // lib/legal/sign-evidence.ts
 
 import { sha256HexFromJson } from './evidence-pack-canonical'
+
+/**
+ * Canonical JSON type (inline, local)
+ * Do NOT loosen this.
+ */
+type Json =
+  | null
+  | boolean
+  | number
+  | string
+  | Json[]
+  | { [key: string]: Json }
 
 export interface EvidenceSignature {
   algorithm: 'SHA-256'
@@ -10,11 +25,22 @@ export interface EvidenceSignature {
   note: string
 }
 
-export function signEvidencePack<T extends object>(
+/**
+ * Signs an evidence object by attaching a Veriscopic signature block.
+ *
+ * IMPORTANT:
+ * - evidencePack MUST already be JSON-serialisable
+ * - canonical hashing enforces this invariant
+ */
+export function signEvidencePack<T extends Record<string, unknown>>(
   evidencePack: T
 ): T & { signature: EvidenceSignature } {
-  // IMPORTANT: hash canonical JSON, not raw stringify
-  const { checksum } = sha256HexFromJson(evidencePack as any)
+  /**
+   * Intentional boundary cast:
+   * - Evidence packs are constructed exclusively from JSON-safe primitives
+   * - sha256HexFromJson will throw if this is violated
+   */
+  const { checksum } = sha256HexFromJson(evidencePack as Json)
 
   return {
     ...evidencePack,

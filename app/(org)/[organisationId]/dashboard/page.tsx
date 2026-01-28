@@ -1,8 +1,12 @@
 // app/(org)/[organisationId]/dashboard/page.tsx
+// app/(org)/[organisationId]/dashboard/page.tsx
 
 import { redirect } from "next/navigation"
+import Link from "next/link"
+
 import { requireMember, hasRole } from "@/lib/rbac/guards"
 import { supabaseServerRead } from "@/lib/supabase/server-read"
+
 import { DashboardHeader } from "./components/dashboard-header"
 import { OrganisationOverview } from "./components/organisation-overview"
 import { ComplianceCompletenessCard } from "./components/compliance-completeness-card"
@@ -12,6 +16,7 @@ import { EvidenceLog } from "./components/evidence-log"
 import { AcceptDocumentsCTA } from "./components/accept-documents-cta"
 import { EvidencePackCard } from "./components/evidence-pack-card"
 import { DriftStatusCard } from "./components/drift-status-card"
+
 import { FeatureToggle } from "@/components/compliance/feature-toggle"
 
 import { getCurrentPlatformDocuments } from "@/lib/legal/read-documents"
@@ -25,6 +30,10 @@ import { computeCompleteness } from "@/lib/legal/completeness"
 export const dynamic = "force-dynamic"
 export const revalidate = 0
 
+/* ------------------------------------------------------------------ */
+/* Helpers                                                            */
+/* ------------------------------------------------------------------ */
+
 function formatDate(iso?: string | null) {
   if (!iso) return null
   const d = new Date(iso)
@@ -34,6 +43,10 @@ function formatDate(iso?: string | null) {
     month: "short",
     day: "2-digit",
   })
+}
+
+type OrganisationFeatures = {
+  evidence_pack?: boolean
 }
 
 type PageProps = {
@@ -66,6 +79,10 @@ function SectionCard({
   )
 }
 
+/* ------------------------------------------------------------------ */
+/* Page                                                               */
+/* ------------------------------------------------------------------ */
+
 export default async function OrganisationDashboardPage({ params }: PageProps) {
   const { organisationId } = await params
 
@@ -91,19 +108,27 @@ export default async function OrganisationDashboardPage({ params }: PageProps) {
       .select("features")
       .eq("id", ctx.org.id)
       .single(),
+
     getCurrentPlatformDocuments(),
+
     getOrganisationAcceptanceEvents(ctx.org.id),
+
     supabase
       .from("ai_systems")
       .select("*", { count: "exact", head: true })
       .eq("organisation_id", ctx.org.id),
+
     getLatestDriftStatus(ctx.org.id),
   ])
 
-  const features = orgRow?.features ?? {}
+  const features = (orgRow?.features ?? {}) as OrganisationFeatures
+
+  /* ------------------------------------------------------------------ */
+  /* Legal document acceptance                                          */
+  /* ------------------------------------------------------------------ */
 
   const acceptedDocumentIds = new Set(
-    acceptanceEvents.map((e) => e.document_id),
+    acceptanceEvents.map((e) => e.document_id)
   )
 
   const docsWithStatus = currentDocs.map((doc) => ({
@@ -119,13 +144,17 @@ export default async function OrganisationDashboardPage({ params }: PageProps) {
 
   const acceptedOn = acceptanceEvents.length
     ? formatDate(
-      acceptanceEvents
-        .map((e) => e.accepted_at)
-        .filter(Boolean)
-        .sort()
-        .at(-1),
-    )
+        acceptanceEvents
+          .map((e) => e.accepted_at)
+          .filter(Boolean)
+          .sort()
+          .at(-1)
+      )
     : null
+
+  /* ------------------------------------------------------------------ */
+  /* Governance completeness                                            */
+  /* ------------------------------------------------------------------ */
 
   const rawCompleteness = computeCompleteness({
     currentDocs: docsWithStatus,
@@ -165,10 +194,15 @@ export default async function OrganisationDashboardPage({ params }: PageProps) {
       ? `${Math.max(requiredCount - missingCount, 0)} of ${requiredCount} recorded`
       : "—"
 
+  /* ------------------------------------------------------------------ */
+  /* Render                                                            */
+  /* ------------------------------------------------------------------ */
+
   return (
     <main className="bg-slate-100/70">
       <div className="mx-auto max-w-[1120px] px-4 pb-16 pt-6 sm:px-6 sm:pt-8">
         <div className="space-y-8 sm:space-y-10">
+          {/* HEADER */}
           <div className="rounded-2xl border border-slate-200/70 bg-white/80 px-4 py-5 shadow-[0_14px_40px_rgba(15,23,42,0.06)] sm:px-6 sm:py-6">
             <DashboardHeader
               organisationName={ctx.org.name}
@@ -197,11 +231,19 @@ export default async function OrganisationDashboardPage({ params }: PageProps) {
                   governance snapshots over time. No behavioural monitoring is
                   performed.
                 </p>
-                <div className="mt-4">
+
+                <div className="mt-4 space-y-2">
                   <DriftStatusCard
                     status={driftStatus.status}
                     detectedAt={driftStatus.detected_at}
                   />
+
+                  <Link
+                    href={`/${ctx.org.id}/drift`}
+                    className="inline-block text-xs underline text-slate-600 hover:text-slate-800"
+                  >
+                    View drift report
+                  </Link>
                 </div>
               </div>
             </div>
@@ -214,12 +256,18 @@ export default async function OrganisationDashboardPage({ params }: PageProps) {
           >
             <div className="grid gap-6 lg:grid-cols-3">
               <div className="rounded-xl border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.04)] sm:p-5">
-                <OrganisationOverview name={ctx.org.name} memberCount={1} />
+                <OrganisationOverview
+                  name={ctx.org.name}
+                  memberCount={1}
+                />
               </div>
 
               <div className="space-y-6 lg:col-span-2">
                 <div className="rounded-xl border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.04)] sm:p-5">
-                  <EvidencePackCard organisationId={ctx.org.id} />
+                  <EvidencePackCard
+                    organisationId={ctx.org.id}
+                    enabled={Boolean(features.evidence_pack)}
+                  />
                 </div>
 
                 <div className="rounded-xl border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.04)] sm:p-5">
@@ -235,7 +283,7 @@ export default async function OrganisationDashboardPage({ params }: PageProps) {
                     <FeatureToggle
                       organisationId={ctx.org.id}
                       featureKey="evidence_pack"
-                      enabled={Boolean((features as any)?.evidence_pack)}
+                      enabled={Boolean(features.evidence_pack)}
                       canEdit={canEditFeatures}
                     />
                   </div>
@@ -277,8 +325,9 @@ export default async function OrganisationDashboardPage({ params }: PageProps) {
                   Accountability structure
                 </p>
                 <p className="mt-1 text-sm text-slate-600">
-                  Responsibility mapping defines decision accountability, the evidence
-                  each role must produce, and when that responsibility must be revisited.
+                  Responsibility mapping defines decision accountability, the
+                  evidence each role must produce, and when that responsibility
+                  must be revisited.
                 </p>
                 <div className="mt-5">
                   <ResponsibilityMap organisationId={ctx.org.id} />

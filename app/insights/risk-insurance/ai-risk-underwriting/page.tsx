@@ -2,6 +2,7 @@
 // app/insights/risk-insurance/ai-risk-underwriting/page.tsx
 
 import type { Metadata } from "next"
+import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: "What insurers will ask for when underwriting AI risk",
@@ -25,7 +26,7 @@ export default function AIRiskUnderwritingPage() {
         While the terminology varies — model risk, algorithmic risk, operational
         AI risk — the underlying question is consistent:
         <strong> can this organisation demonstrate that its AI systems are
-        governed in a controlled and defensible way?</strong>
+          governed in a controlled and defensible way?</strong>
       </p>
 
       <h2>Why AI governance now matters to insurers</h2>
@@ -127,13 +128,14 @@ export default function AIRiskUnderwritingPage() {
       <p>
         <em>
           Related reading:{" "}
-          <a href="/compare/evidence-vs-compliance-automation">
-            Evidence-based AI governance vs compliance automation
-          </a>
+          <Link href="/compare/evidence-vs-compliance-automation">
+            Evidence-based AI governance vs compliance automation platforms
+          </Link>
+
           ,{" "}
-          <a href="/insights/ai-act/procurement-evidence">
-            What procurement teams look for under the EU AI Act
-          </a>
+          <Link href="/insights/ai-act/procurement-evidence">
+            Procurement evidence under the AI Act
+          </Link>
         </em>
       </p>
     </article>

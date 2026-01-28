@@ -64,6 +64,11 @@ export function EvidencePackCard({
           Export an immutable, verifiable record of governance artefacts.
         </p>
       </CardHeader>
+      <p className="text-xs text-slate-500 mt-1">
+        Evidence Packs are sealed at the time of export. Later governance changes
+        are not reflected until a new pack is generated.
+      </p>
+
 
       <CardContent className="space-y-4 px-6 pb-6 pt-0">
         {/* FEATURES */}
@@ -160,4 +165,5 @@ export function EvidencePackCard({
     </Card>
   )
 }
+
 

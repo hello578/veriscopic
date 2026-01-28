@@ -1,6 +1,5 @@
 
 // lib/legal/export-delta-evidence-pdf.ts
-
 import 'server-only'
 
 import PDFDocument from 'pdfkit'
@@ -9,6 +8,15 @@ import type { DeltaEvidencePack } from '@/lib/legal/export-delta-evidence'
 type RenderDeltaPdfOptions = {
   mode?: 'appendix'
   maxItems?: number
+}
+
+/**
+ * Narrow helper for optional before/after diff fields.
+ * This avoids `any` without altering behaviour or structure.
+ */
+type DriftItemDiff = {
+  before?: unknown
+  after?: unknown
 }
 
 function safeOneLine(v: unknown, maxLen = 120): string {
@@ -112,8 +120,9 @@ export async function renderDeltaAppendixPdf(
         .text(`Summary: ${it.summary}`)
 
       // Optional: show trimmed before/after (safe, not huge)
-      const before = safeOneLine((it as any).before)
-      const after = safeOneLine((it as any).after)
+      const diff = it as DriftItemDiff
+      const before = safeOneLine(diff.before)
+      const after = safeOneLine(diff.after)
 
       if (before) doc.text(`Before: ${before}`)
       if (after) doc.text(`After: ${after}`)
@@ -126,7 +135,9 @@ export async function renderDeltaAppendixPdf(
       doc
         .fontSize(9)
         .fillColor('#334155')
-        .text(`Note: showing first ${maxItems} items of ${delta.drift_items.length}.`)
+        .text(
+          `Note: showing first ${maxItems} items of ${delta.drift_items.length}.`
+        )
         .fillColor('black')
     }
   }

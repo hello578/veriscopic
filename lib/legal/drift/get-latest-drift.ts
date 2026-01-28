@@ -1,7 +1,6 @@
 
 // lib/legal/drift/get-latest-drift.ts
 
-
 import { supabaseServerRead } from '@/lib/supabase/server-read'
 
 export type DriftStatusResult =
@@ -43,3 +42,4 @@ export async function getLatestDriftStatus(
     detected_at: data.detected_at,
   }
 }
+

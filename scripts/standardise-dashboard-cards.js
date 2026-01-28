@@ -3,8 +3,12 @@
  * Safe, idempotent, reviewable
  */
 
-const fs = require('fs')
-const path = require('path')
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const TARGET_FILES = [
   'app/(org)/[organisationId]/dashboard/components/evidence-log.tsx',
@@ -15,20 +19,23 @@ const TARGET_FILES = [
 ]
 
 function updateFile(filePath) {
-  const abs = path.resolve(filePath)
+  const abs = path.resolve(__dirname, '..', filePath)
+
   if (!fs.existsSync(abs)) {
     console.warn(`⚠️  Skipping missing file: ${filePath}`)
     return
   }
 
-  let src = fs.readFileSync(abs, 'utf8')
+  const src = fs.readFileSync(abs, 'utf8')
   let updated = src
 
   // CardHeader padding
   updated = updated.replace(
     /<CardHeader([^>]*)className="([^"]*)">/g,
     (_m, pre, classes) => {
-      if (classes.includes('px-')) return `<CardHeader${pre}className="${classes}">`
+      if (classes.includes('px-')) {
+        return `<CardHeader${pre}className="${classes}">`
+      }
       return `<CardHeader${pre}className="${classes} px-6 pb-6">`
     }
   )
@@ -37,7 +44,9 @@ function updateFile(filePath) {
   updated = updated.replace(
     /<CardContent([^>]*)className="([^"]*)">/g,
     (_m, pre, classes) => {
-      if (classes.includes('px-')) return `<CardContent${pre}className="${classes}">`
+      if (classes.includes('px-')) {
+        return `<CardContent${pre}className="${classes}">`
+      }
       return `<CardContent${pre}className="${classes} px-6 pt-0 pb-6">`
     }
   )

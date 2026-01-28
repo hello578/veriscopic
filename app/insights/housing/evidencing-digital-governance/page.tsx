@@ -1,22 +1,22 @@
 // app/insights/housing/evidencing-digital-governance/page.tsx
 
 import type { Metadata } from "next"
+import Link from "next/link"
 
 export const metadata: Metadata = {
-    title:
-        "How housing associations are being asked to evidence digital governance in practice",
-    description:
-        "Why housing associations are increasingly expected to evidence how digital and AI-assisted systems are governed in practice — and why policies alone are no longer sufficient under regulatory, audit, and procurement scrutiny.",
+  title:
+    "How housing associations are being asked to evidence digital governance in practice",
+  description:
+    "Why housing associations are increasingly expected to evidence how digital and AI-assisted systems are governed in practice — and why policies alone are no longer sufficient.",
 }
 
 export default function HousingGovernanceEvidencePage() {
-    return (
-        <article className="prose prose-slate mx-auto max-w-3xl px-6 py-24">
-            <h1>
-                How housing associations are being asked to evidence digital governance in
-                practice
-            </h1>
-
+  return (
+    <article className="prose prose-slate mx-auto max-w-3xl px-6 py-24">
+      <h1>
+        How housing associations are being asked to evidence digital governance
+        in practice
+      </h1>
             <p>
                 Housing associations across the UK are increasingly confident that their
                 digital and data-driven systems are governed responsibly. What many are
@@ -192,21 +192,21 @@ export default function HousingGovernanceEvidencePage() {
                 compliance frameworks or regulatory interpretations.
             </p>
 
-            <hr />
+             <hr />
 
-            <p>
-                <em>
-                    Related reading:{" "}
-                    <a href="/compare/evidence-vs-compliance-automation">
-                        Evidence-based AI governance vs compliance automation platforms
-                    </a>
-                    ,{" "}
-                    <a href="/insights/governance-evidence/from-policy-to-proof">
-                        From policy to proof: why boards are being asked to evidence AI
-                        governance
-                    </a>
-                </em>
-            </p>
-        </article>
-    )
+      <p>
+        <em>
+          Related reading:{" "}
+          <Link href="/compare/evidence-vs-compliance-automation">
+            Evidence-based AI governance vs compliance automation platforms
+          </Link>
+          ,{" "}
+          <Link href="/insights/governance-evidence/from-policy-to-proof">
+            From policy to proof: why boards are being asked to evidence AI
+            governance
+          </Link>
+        </em>
+      </p>
+    </article>
+  )
 }

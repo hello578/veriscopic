@@ -1,10 +1,12 @@
-
 // app/evidence/request/page.tsx
-
 
 "use client"
 
 import { useState } from "react"
+import type {
+  InputHTMLAttributes,
+  TextareaHTMLAttributes,
+} from "react"
 
 export default function RequestEvidencePackPage() {
   const [loading, setLoading] = useState(false)
@@ -65,8 +67,18 @@ export default function RequestEvidencePackPage() {
         </div>
       ) : (
         <form className="mt-12 space-y-6" onSubmit={onSubmit}>
-          <Input label="Work email" name="email" type="email" required />
-          <Input label="Organisation" name="organisation" required />
+          <Input
+            label="Work email"
+            name="email"
+            type="email"
+            required
+          />
+
+          <Input
+            label="Organisation"
+            name="organisation"
+            required
+          />
 
           <Select
             label="Your role"
@@ -117,10 +129,20 @@ export default function RequestEvidencePackPage() {
   )
 }
 
-function Input(props: any) {
+/* ------------------------------------------------------------------ */
+/* Input                                                               */
+/* ------------------------------------------------------------------ */
+
+type InputProps = {
+  label: string
+} & InputHTMLAttributes<HTMLInputElement>
+
+function Input({ label, ...props }: InputProps) {
   return (
     <div>
-      <label className="block text-sm font-medium">{props.label}</label>
+      <label className="block text-sm font-medium">
+        {label}
+      </label>
       <input
         {...props}
         className="mt-2 w-full rounded-md border border-slate-300 px-4 py-2.5 text-sm"
@@ -129,30 +151,54 @@ function Input(props: any) {
   )
 }
 
-function Select({ label, name, options }: any) {
+/* ------------------------------------------------------------------ */
+/* Select                                                              */
+/* ------------------------------------------------------------------ */
+
+type SelectProps = {
+  label: string
+  name: string
+  options: string[]
+}
+
+function Select({ label, name, options }: SelectProps) {
   return (
     <div>
-      <label className="block text-sm font-medium">{label}</label>
+      <label className="block text-sm font-medium">
+        {label}
+      </label>
       <select
         name={name}
         required
         className="mt-2 w-full rounded-md border border-slate-300 px-4 py-2.5 text-sm"
       >
         <option value="">Select…</option>
-        {options.map((o: string) => (
-          <option key={o}>{o}</option>
+        {options.map((o) => (
+          <option key={o} value={o}>
+            {o}
+          </option>
         ))}
       </select>
     </div>
   )
 }
 
-function Textarea({ label, name }: any) {
+/* ------------------------------------------------------------------ */
+/* Textarea                                                            */
+/* ------------------------------------------------------------------ */
+
+type TextareaProps = {
+  label: string
+} & TextareaHTMLAttributes<HTMLTextAreaElement>
+
+function Textarea({ label, ...props }: TextareaProps) {
   return (
     <div>
-      <label className="block text-sm font-medium">{label}</label>
+      <label className="block text-sm font-medium">
+        {label}
+      </label>
       <textarea
-        name={name}
+        {...props}
         rows={4}
         className="mt-2 w-full rounded-md border border-slate-300 px-4 py-2.5 text-sm"
       />

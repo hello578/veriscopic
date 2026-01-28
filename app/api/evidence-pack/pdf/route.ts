@@ -1,13 +1,23 @@
 // app/api/evidence-pack/pdf/route.ts
+// app/api/evidence-pack/pdf/route.ts
 
 import { NextResponse } from 'next/server'
-import { exportEvidencePack } from '@/lib/legal/export-evidence'
-import { renderEvidencePackPdf } from '@/lib/legal/export-evidence-pdf'
 import { requireRole } from '@/lib/rbac/guards'
 import { requireFeature } from '@/lib/compliance/require-feature'
+import { exportEvidencePack } from '@/lib/legal/export-evidence'
+import { renderEvidencePackPdf } from '@/lib/legal/export-evidence-pdf'
 
 export const runtime = 'nodejs'
 
+/**
+ * Evidence Pack PDF export
+ *
+ * GUARANTEES:
+ * - Owner/Admin only
+ * - Feature-flag enforced (evidence_pack)
+ * - Deterministic output from canonical JSON
+ * - No mutation or side-effects
+ */
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
   const organisationId = searchParams.get('organisationId')
@@ -19,28 +29,39 @@ export async function GET(req: Request) {
     )
   }
 
-  // --- RBAC: owner/admin only
-  await requireRole(organisationId, ['owner', 'admin'])
+  // ---------------------------------------------------------------------------
+  // RBAC — strict: only owners/admins may export evidence
+  // ---------------------------------------------------------------------------
+  const roleResult = await requireRole(organisationId, ['owner', 'admin'])
+  if (!roleResult.ok) {
+    return NextResponse.json(
+      { error: 'Unauthorised' },
+      { status: 401 }
+    )
+  }
 
-  // --- Feature gate: Evidence Pack
-  const hasEvidencePack = await requireFeature(
-    organisationId,
-    'evidence_pack'
-  )
-
-  if (!hasEvidencePack) {
+  // ---------------------------------------------------------------------------
+  // Feature gate — Evidence Pack must be enabled
+  // ---------------------------------------------------------------------------
+  const enabled = await requireFeature(organisationId, 'evidence_pack')
+  if (!enabled) {
     return NextResponse.json(
       {
-        error:
-          'Evidence Pack export is not enabled for this organisation.',
+        error: 'Evidence Pack export is not enabled for this organisation.',
+        code: 'EVIDENCE_PACK_DISABLED',
       },
       { status: 403 }
     )
   }
 
-  // --- Canonical export
+  // ---------------------------------------------------------------------------
+  // Canonical export (read-only, deterministic)
+  // ---------------------------------------------------------------------------
   const pack = await exportEvidencePack(organisationId)
-  const pdfBytes = await renderEvidencePackPdf(pack, { mode: 'full' })
+
+  const pdfBytes = await renderEvidencePackPdf(pack, {
+    mode: 'full',
+  })
 
   const buffer = Buffer.from(pdfBytes)
   const filename = `veriscopic-evidence-pack-${organisationId}.pdf`
@@ -53,5 +74,3 @@ export async function GET(req: Request) {
     },
   })
 }
-
-

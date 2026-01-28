@@ -1,3 +1,6 @@
+// lib/types/compliance.ts
+
+
 export type CompletenessStatus =
   | 'strong'
   | 'developing'

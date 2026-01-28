@@ -71,7 +71,6 @@ export default function EvidenceLandingPage() {
               due diligence, insurance review, and regulatory scrutiny.
             </p>
 
-            {/* CTA GROUP */}
             <div className="mt-12 flex flex-col gap-4 sm:flex-row">
               <Link
                 href="https://calendly.com/hello-veriscopic/30min"
@@ -91,13 +90,13 @@ export default function EvidenceLandingPage() {
         <section className="v-section v-muted">
           <div className="v-container v-copy">
             <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-              <p className="font-medium text-slate-900">
-                Evidence for your organisation
-              </p>
+              <h2 className="v-h2">Evidence for your organisation</h2>
+
               <p className="mt-2 text-slate-600">
                 Evidence Packs are generated from declared governance inputs,
                 including accepted platform documents and AI system declarations.
               </p>
+
               <p className="mt-1 text-sm text-slate-500">
                 Availability depends on governance completeness.
               </p>
@@ -229,3 +228,4 @@ export default function EvidenceLandingPage() {
     </PublicPage>
   )
 }
+

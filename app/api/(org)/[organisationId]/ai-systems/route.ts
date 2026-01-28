@@ -1,4 +1,5 @@
 // app/api/(org)/[organisationId]/ai-systems/route.ts
+// app/api/(org)/[organisationId]/ai-systems/route.ts
 
 import { NextResponse } from 'next/server'
 import { requireMember } from '@/lib/rbac/guards'
@@ -11,14 +12,27 @@ type CreateAISystemBody = {
   data_categories?: string[] | null
 }
 
-function sanitizeText(input: unknown, maxLen: number) {
+type MembershipContext = {
+  role_key?: string | null
+  user_id?: string | null
+  membership?: {
+    role_key?: string | null
+    user_id?: string | null
+  }
+}
+
+function sanitizeText(input: unknown, maxLen: number): string | null {
   if (typeof input !== 'string') return null
   const t = input.trim()
   if (!t) return null
   return t.length > maxLen ? t.slice(0, maxLen) : t
 }
 
-function sanitizeStringArray(input: unknown, maxItems: number, maxItemLen: number) {
+function sanitizeStringArray(
+  input: unknown,
+  maxItems: number,
+  maxItemLen: number
+): string[] {
   if (!Array.isArray(input)) return []
   const out: string[] = []
   for (const item of input) {
@@ -33,33 +47,25 @@ function sanitizeStringArray(input: unknown, maxItems: number, maxItemLen: numbe
 
 export async function POST(
   req: Request,
-  {
-    params,
-  }: {
-    params: Promise<{ organisationId: string }>
-  }
+  { params }: { params: Promise<{ organisationId: string }> }
 ) {
   const { organisationId } = await params
 
-  // --------------------------------------------------
-  // Auth / membership (organisation-scoped)
-  // --------------------------------------------------
-  const membership = await requireMember(organisationId)
-  if (!membership.ok) {
+  // ── Auth / RBAC ───────────────────────────────────
+  const membershipResult = await requireMember(organisationId)
+  if (!membershipResult.ok) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  // Gold-standard guardrail:
-  // If your DB policies allow only owner/admin to create, keep parity here.
-  // We do NOT depend on user_id for evidence validity; this is just permissioning.
-  const roleKey = (membership as any)?.membership?.role_key ?? (membership as any)?.role_key
+  const membership = membershipResult as MembershipContext
+  const roleKey =
+    membership.membership?.role_key ?? membership.role_key ?? null
+
   if (roleKey && !['owner', 'admin'].includes(roleKey)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  // --------------------------------------------------
-  // Parse + validate body
-  // --------------------------------------------------
+  // ── Parse + validate body ─────────────────────────
   let body: CreateAISystemBody
   try {
     body = (await req.json()) as CreateAISystemBody
@@ -69,9 +75,6 @@ export async function POST(
 
   const name = sanitizeText(body?.name, 140)
   const purpose = sanitizeText(body?.purpose, 2000)
-  const systemOwnerRaw = body?.system_owner
-  const systemOwner =
-    systemOwnerRaw === null ? null : sanitizeText(systemOwnerRaw, 140)
 
   if (!name || !purpose) {
     return NextResponse.json(
@@ -80,20 +83,27 @@ export async function POST(
     )
   }
 
-  const dataCategories = sanitizeStringArray(body?.data_categories ?? [], 50, 60)
+  const systemOwner =
+    body?.system_owner === null
+      ? null
+      : sanitizeText(body?.system_owner, 140)
+
+  const dataCategories = sanitizeStringArray(
+    body?.data_categories ?? [],
+    50,
+    60
+  )
 
   const supabase = await supabaseServerWrite()
 
-  // --------------------------------------------------
-  // Insert AI system (org-scoped, declarative)
-  // --------------------------------------------------
+  // ── Insert AI system ──────────────────────────────
   const { data: system, error } = await supabase
     .from('ai_systems')
     .insert({
       organisation_id: organisationId,
       name,
       purpose,
-      system_owner: systemOwner ?? null,
+      system_owner: systemOwner,
       data_categories: dataCategories,
       lifecycle_status: 'active',
       is_operational: false,
@@ -109,33 +119,30 @@ export async function POST(
     )
   }
 
-  // --------------------------------------------------
-  // Audit event (best-effort, non-blocking)
-  // --------------------------------------------------
+  // ── Mark governance as changed (signal only) ──────
+  await supabase
+    .from('organisations')
+    .update({
+      governance_changed_at: new Date().toISOString(),
+    })
+    .eq('id', organisationId)
+
+  // ── Audit event (best-effort) ─────────────────────
   try {
     const actorUserId =
-      (membership as any)?.membership?.user_id ??
-      (membership as any)?.user_id ??
-      null
+      membership.membership?.user_id ?? membership.user_id ?? null
 
-    const { error: auditError } = await supabase
-      .from('organisation_audit_events')
-      .insert({
-        organisation_id: organisationId,
-        event_type: 'ai_system.created',
-        actor_user_id: actorUserId, // allowed to be null
-        metadata: {
-          system_id: system.id,
-          name: system.name,
-          is_operational: system.is_operational,
-        },
-      })
-
-    if (auditError) {
-      console.warn('[ai-systems POST] audit insert failed (non-blocking):', auditError)
-    }
-  } catch (e) {
-    console.warn('[ai-systems POST] audit insert threw (non-blocking):', e)
+    await supabase.from('organisation_audit_events').insert({
+      organisation_id: organisationId,
+      event_type: 'ai_system.created',
+      actor_user_id: actorUserId,
+      metadata: {
+        system_id: system.id,
+        name: system.name,
+      },
+    })
+  } catch {
+    // Never block core flow on audit failure
   }
 
   return NextResponse.json({ system })

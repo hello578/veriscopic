@@ -4,7 +4,7 @@
 import { redirect } from 'next/navigation'
 import { supabaseServerRead } from '@/lib/supabase/server-read'
 import { requireMember } from '@/lib/rbac/guards'
-
+import Link from 'next/link'
 import { Card, CardHeader, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import type { DriftItem } from '@/lib/legal/drift/detect-drift'
@@ -58,7 +58,7 @@ export default async function DriftReportPage({ params }: PageProps) {
   /* No drift history yet                                                      */
   /* ------------------------------------------------------------------------ */
 
-  if (!driftEvent || !driftEvent.delta_snapshot) {
+  if (!driftEvent) {
     return (
       <main className="py-12">
         <div className="mx-auto max-w-3xl px-6">
@@ -110,13 +110,22 @@ export default async function DriftReportPage({ params }: PageProps) {
             Last verified on {formatDate(driftEvent.detected_at)}
           </p>
 
-          <a
+          <Link
             href="/drift/how-it-works"
             className="text-xs text-slate-500 underline"
           >
             How drift detection works
-          </a>
+          </Link>
+
         </header>
+
+        <div className="rounded-md border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
+          <strong>Drift scope:</strong> Drift reports compare the two most recently
+          sealed Evidence Packs. Governance changes made after the latest pack
+          will be reflected in the <em>next</em> drift report when a new Evidence
+          Pack is generated.
+        </div>
+
 
         {/* ------------------------------------------------------------------ */}
         {/* Material warning                                                    */}
@@ -236,7 +245,8 @@ export default async function DriftReportPage({ params }: PageProps) {
         {/* ------------------------------------------------------------------ */}
         {/* Drift history                                                       */}
         {/* ------------------------------------------------------------------ */}
-        {history && history.length > 1 && (
+        {history && history.length > 0 && (
+
           <Card>
             <CardHeader>
               <h2 className="text-sm font-semibold">Drift history</h2>

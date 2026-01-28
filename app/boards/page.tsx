@@ -94,7 +94,7 @@ export default function BoardsPage() {
               </li>
             </ul>
             <p>
-              The outcome is not a dashboard, score, or certification — but a
+              The outcome is not a dashboard, score, or certification, but a 
               <strong>defensible record of governance intent and action</strong>.
             </p>
           </div>

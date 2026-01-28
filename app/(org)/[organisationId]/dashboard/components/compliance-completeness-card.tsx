@@ -1,14 +1,9 @@
 // app/(org)/[organisationId]/dashboard/components/compliance-completeness-card.tsx
+// app/(org)/[organisationId]/dashboard/components/compliance-completeness-card.tsx
 
 import { Card, CardHeader, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
-import { CheckCircle2, XCircle, Info } from 'lucide-react'
+import { CheckCircle2, XCircle } from 'lucide-react'
 
 export type CompletenessStatus = 'strong' | 'developing' | 'incomplete'
 
@@ -28,6 +23,10 @@ interface Props {
   organisationId: string
 }
 
+/* --------------------------------
+   Helpers
+--------------------------------- */
+
 function statusBadge(status: CompletenessStatus) {
   if (status === 'strong') {
     return <Badge className="bg-emerald-100 text-emerald-700">Strong</Badge>
@@ -38,11 +37,43 @@ function statusBadge(status: CompletenessStatus) {
   return <Badge variant="secondary">Incomplete</Badge>
 }
 
+function CheckRow({
+  label,
+  recorded,
+}: {
+  label: string
+  recorded: boolean
+}) {
+  return (
+    <div className="flex justify-between rounded border px-4 py-2">
+      <span className="text-sm font-medium text-slate-900">
+        {label}
+      </span>
+
+      {recorded ? (
+        <span className="flex items-center gap-1 text-xs text-emerald-600">
+          <CheckCircle2 className="h-3 w-3" />
+          Recorded
+        </span>
+      ) : (
+        <span className="flex items-center gap-1 text-xs text-amber-700">
+          <XCircle className="h-3 w-3" />
+          Missing
+        </span>
+      )}
+    </div>
+  )
+}
+
+/* --------------------------------
+   Component
+--------------------------------- */
+
 export function ComplianceCompletenessCard({
   completeness,
-  organisationId,
 }: Props) {
-  const totalChecks = completeness.breakdown.requiredDocs.length + 2
+  const totalChecks =
+    completeness.breakdown.requiredDocs.length + 2 // AI systems + accountability
 
   const completedChecks =
     completeness.breakdown.requiredDocs.length -
@@ -84,34 +115,35 @@ export function ComplianceCompletenessCard({
       </CardHeader>
 
       <CardContent className="px-6 pb-6 space-y-3">
+        {/* Platform documents */}
         {completeness.breakdown.requiredDocs.map((doc) => {
-          const missing = completeness.breakdown.missingDocs.includes(doc)
-          const outdated = completeness.breakdown.outdatedDocs.includes(doc)
+          const missing =
+            completeness.breakdown.missingDocs.includes(doc)
+          const outdated =
+            completeness.breakdown.outdatedDocs.includes(doc)
 
           return (
-            <div
+            <CheckRow
               key={doc}
-              className="flex justify-between rounded border px-4 py-2"
-            >
-              <span className="text-sm font-medium">
-                {doc.replace(/-/g, ' ')}
-              </span>
-
-              {missing || outdated ? (
-                <span className="flex items-center gap-1 text-xs text-amber-700">
-                  <XCircle className="h-3 w-3" />
-                  {missing ? 'Missing' : 'Outdated'}
-                </span>
-              ) : (
-                <span className="flex items-center gap-1 text-xs text-emerald-600">
-                  <CheckCircle2 className="h-3 w-3" />
-                  Recorded
-                </span>
-              )}
-            </div>
+              label={doc.replace(/-/g, ' ')}
+              recorded={!missing && !outdated}
+            />
           )
         })}
+
+        {/* AI systems */}
+        <CheckRow
+          label="AI systems registered"
+          recorded={completeness.breakdown.hasAISystems}
+        />
+
+        {/* Accountability */}
+        <CheckRow
+          label="Accountability framework declared"
+          recorded={completeness.breakdown.hasAccountability}
+        />
       </CardContent>
     </Card>
   )
 }
+

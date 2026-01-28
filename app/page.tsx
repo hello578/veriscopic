@@ -4,6 +4,8 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { PricingBand } from "@/components/home/pricing-band"
 import { FinalCTA } from "@/components/shared/final-cta"
+import Image from "next/image"
+
 
 export const metadata: Metadata = {
   title: "AI Governance Evidence Platform | Veriscopic",
@@ -35,7 +37,7 @@ export default function HomePage() {
 
             <p className="v-lead">
               Defensible, audit-ready records showing how AI systems are governed
-              <strong> in practice</strong> 
+              <strong> in practice</strong>
             </p>
 
             <p className="v-sub">
@@ -148,11 +150,14 @@ export default function HomePage() {
 
           <div className="v-evidence-row" aria-hidden="true">
             <div className="v-doc v-doc-image">
-              <img
+              <Image
                 src="/images/pdf-report1.png"
                 alt="Sample Veriscopic evidence report"
+                width={74}
+                height={96}
                 className="v-doc-img"
               />
+
             </div>
 
             <div className="v-dot" />
@@ -160,11 +165,14 @@ export default function HomePage() {
             <div className="v-dot" />
 
             <div className="v-doc v-doc-image">
-              <img
+              <Image
                 src="/images/pdf-report2.png"
                 alt="Sample Veriscopic cryptographic report"
+                width={74}
+                height={96}
                 className="v-doc-img"
               />
+
             </div>
           </div>
 
@@ -393,9 +401,11 @@ function FeatureCard({
           padding: 22,
         }}
       >
-        <img
+        <Image
           src={imageSrc}
           alt=""
+          width={320}
+          height={210}
           style={{
             width: "100%",
             height: "100%",
@@ -403,6 +413,7 @@ function FeatureCard({
             borderRadius: 14,
           }}
         />
+
       </div>
 
       <div style={{ padding: "18px 18px 20px" }}>
