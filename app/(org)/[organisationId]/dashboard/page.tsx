@@ -119,12 +119,12 @@ export default async function OrganisationDashboardPage({ params }: PageProps) {
 
   const acceptedOn = acceptanceEvents.length
     ? formatDate(
-        acceptanceEvents
-          .map((e) => e.accepted_at)
-          .filter(Boolean)
-          .sort()
-          .at(-1),
-      )
+      acceptanceEvents
+        .map((e) => e.accepted_at)
+        .filter(Boolean)
+        .sort()
+        .at(-1),
+    )
     : null
 
   const rawCompleteness = computeCompleteness({
@@ -180,7 +180,7 @@ export default async function OrganisationDashboardPage({ params }: PageProps) {
           {/* GOVERNANCE STATUS */}
           <SectionCard
             title="Governance status"
-            description={`Your governance record is built from accepted platform documents, declared accountability, and registered AI systems. Progress: ${progressLabel}.`}
+            description={`Your governance record is built from accepted platform documents, declared accountability responsibilities, and registered AI systems. Progress: ${progressLabel}.`}
           >
             <div className="space-y-6">
               <ComplianceCompletenessCard
@@ -277,11 +277,11 @@ export default async function OrganisationDashboardPage({ params }: PageProps) {
                   Accountability structure
                 </p>
                 <p className="mt-1 text-sm text-slate-600">
-                  Responsibility mapping clarifies who holds operational and
-                  legal accountability under your governance model.
+                  Responsibility mapping defines decision accountability, the evidence
+                  each role must produce, and when that responsibility must be revisited.
                 </p>
                 <div className="mt-5">
-                  <ResponsibilityMap />
+                  <ResponsibilityMap organisationId={ctx.org.id} />
                 </div>
               </div>
             </div>

@@ -1,6 +1,4 @@
-
-//lib/legal/drift/detect-drift.ts
-
+// lib/legal/drift/detect-drift.ts
 import 'server-only'
 
 import type { EvidencePack } from '@/lib/legal/export-evidence'
@@ -53,12 +51,15 @@ function mapBy<T>(arr: T[], keyFn: (t: T) => string) {
 
 function addItem(
   items: DriftItem[],
-  item: Omit<DriftItem, 'severity'>
+  item: Omit<DriftItem, 'severity'>,
+  severityOverride?: DriftSeverity,
 ) {
-  const severity = classifySeverity({
-    path: item.path,
-    change_type: item.change_type,
-  })
+  const severity =
+    severityOverride ??
+    classifySeverity({
+      path: item.path,
+      change_type: item.change_type,
+    })
 
   items.push({
     ...item,
@@ -68,10 +69,11 @@ function addItem(
   })
 }
 
-export function detectDrift(
-  previous: EvidencePack,
-  current: EvidencePack
-): DriftResult {
+function jsonEqual(a: unknown, b: unknown) {
+  return JSON.stringify(a ?? null) === JSON.stringify(b ?? null)
+}
+
+export function detectDrift(previous: EvidencePack, current: EvidencePack): DriftResult {
   const items: DriftItem[] = []
 
   // ---------------------------------------------------------------------------
@@ -165,13 +167,14 @@ export function detectDrift(
       'system_owner',
       'data_categories',
       'lifecycle_status',
+      'is_operational',
     ]
 
     for (const f of fields) {
       const before = prevS[f]
       const after = currS[f]
 
-      if (JSON.stringify(before ?? null) !== JSON.stringify(after ?? null)) {
+      if (!jsonEqual(before, after)) {
         addItem(items, {
           path: `ai_systems.${name}.${String(f)}`,
           change_type: 'modified',
@@ -195,6 +198,86 @@ export function detectDrift(
   }
 
   // ---------------------------------------------------------------------------
+  // 3) Responsibility map drift (v1.1)
+  // Rules:
+  // - Material: decision_surface, evidence_type, review_trigger changes
+  // - Informational: added/removed/status-only changes
+  // ---------------------------------------------------------------------------
+  const prevResp = previous.responsibility_map?.records ?? []
+  const currResp = current.responsibility_map?.records ?? []
+
+  // Use a stable identity key that does not depend on timestamps.
+  // (If you later add an id field into the pack, switch to that.)
+  const keyFn = (r: (typeof currResp)[number]) =>
+    `${r.role}::${r.decision_surface}::${r.evidence_type}`
+
+  const prevByKey = mapBy(prevResp, keyFn)
+  const currByKey = mapBy(currResp, keyFn)
+
+  // Added
+  for (const [k, after] of currByKey.entries()) {
+    const before = prevByKey.get(k)
+    if (!before) {
+      addItem(
+        items,
+        {
+          path: `responsibility_map.${after.role}`,
+          change_type: 'added',
+          summary: `Responsibility added for role "${after.role}".`,
+          after,
+        },
+        'informational',
+      )
+    }
+  }
+
+  // Removed
+  for (const [k, before] of prevByKey.entries()) {
+    if (!currByKey.has(k)) {
+      addItem(
+        items,
+        {
+          path: `responsibility_map.${before.role}`,
+          change_type: 'removed',
+          summary: `Responsibility removed for role "${before.role}".`,
+          before,
+        },
+        'informational',
+      )
+    }
+  }
+
+  // Modified (only possible if the same key exists and fields differ)
+  for (const [k, after] of currByKey.entries()) {
+    const before = prevByKey.get(k)
+    if (!before) continue
+
+    const materialChanged =
+      before.decision_surface !== after.decision_surface ||
+      before.evidence_type !== after.evidence_type ||
+      before.review_trigger !== after.review_trigger
+
+    const statusChanged = before.status !== after.status
+
+    // If nothing changed, do nothing.
+    if (!materialChanged && !statusChanged) continue
+
+    addItem(
+      items,
+      {
+        path: `responsibility_map.${after.role}`,
+        change_type: 'modified',
+        summary: materialChanged
+          ? `Accountability definition changed for role "${after.role}".`
+          : `Responsibility status updated for role "${after.role}".`,
+        before,
+        after,
+      },
+      materialChanged ? 'material' : 'informational',
+    )
+  }
+
+  // ---------------------------------------------------------------------------
   // Summary + highest severity
   // ---------------------------------------------------------------------------
   const material_count = items.filter((i) => i.severity === 'material').length
@@ -215,5 +298,6 @@ export function detectDrift(
     drift_items: items,
   }
 }
+
 
 

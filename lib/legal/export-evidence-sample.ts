@@ -7,7 +7,7 @@ export async function exportEvidencePackSample(): Promise<EvidencePack> {
   const generatedAt = new Date().toISOString()
 
   const packCore: Omit<EvidencePack, 'integrity'> = {
-    evidence_pack_version: '1.0',
+    evidence_pack_version: '1.1',
 
     organisation: {
       id: 'sample',
@@ -73,9 +73,11 @@ export async function exportEvidencePackSample(): Promise<EvidencePack> {
         system_owner: 'Operations Lead',
         data_categories: ['customer messages', 'support metadata'],
         lifecycle_status: 'production',
+        is_operational: true,
         last_updated: '2025-01-01T10:00:00Z',
       },
     ],
+
 
     ai_act_mapping: [
       {
@@ -99,6 +101,10 @@ export async function exportEvidencePackSample(): Promise<EvidencePack> {
         evidence_refs: ['governance_snapshot.organisation_events'],
       },
     ],
+    responsibility_map: {
+      declared_count: 0,
+      records: []
+    }
   }
 
   const { checksum } = sha256HexFromJson(packCore)

@@ -21,6 +21,9 @@ import {
   renderVerificationAppendix,
 } from './export-evidence-pdf.sections'
 
+import { renderResponsibilitySummary } from './export-evidence-pdf.sections/responsibility-summary'
+
+
 const FONT_REGULAR = path.join(
   process.cwd(),
   'public/fonts/Inter_18pt-Regular.ttf'
@@ -63,16 +66,18 @@ export async function renderEvidencePackPdfCore(
   const counts = {
     legalAcceptance: pack.legal_acceptance.length,
     aiSystems: pack.ai_systems.length,
+    responsibilities: pack.responsibility_map?.declared_count ?? 0,
     orgEvents: pack.governance_snapshot.organisation_events.length,
     aiActMappings: pack.ai_act_mapping.length,
   }
 
   const completeness =
-    counts.legalAcceptance && counts.aiSystems
+    counts.legalAcceptance && counts.aiSystems && counts.responsibilities
       ? 'Strong'
-      : counts.legalAcceptance
-      ? 'Developing'
-      : 'Incomplete'
+      : counts.legalAcceptance || counts.aiSystems
+        ? 'Developing'
+        : 'Incomplete'
+
 
   // ------------------------------------------------------------------
   // Cover (STRICT EvidencePack — no derived fields injected)
@@ -112,6 +117,9 @@ export async function renderEvidencePackPdfCore(
 
     newPage()
     renderAiSystems({ doc, pack, isSample, maxPages: 8 })
+
+    newPage()
+    renderResponsibilitySummary({ doc, pack }) // 👈 NEW
 
     newPage()
     renderAiActMap({ doc, pack, isSample, maxPages: 8 })

@@ -1,16 +1,15 @@
 // lib/legal/export-evidence.ts
-
 import 'server-only'
 
 import { supabaseServerRead } from '@/lib/supabase/server-read'
 import { sha256HexFromJson } from './evidence-pack-canonical'
 
 /* -------------------------------------------------------------------------- */
-/* Evidence Pack Contract                                                      */
+/* Evidence Pack Contract (v1.1)                                               */
 /* -------------------------------------------------------------------------- */
 
 export type EvidencePack = {
-  evidence_pack_version: '1.0'
+  evidence_pack_version: '1.1'
 
   organisation: {
     id: string
@@ -46,8 +45,22 @@ export type EvidencePack = {
     system_owner: string | null
     data_categories: string[]
     lifecycle_status: string
+    is_operational: boolean
     last_updated: string
   }[]
+
+  // New in v1.1
+  responsibility_map: {
+    declared_count: number
+    records: {
+      role: string
+      decision_surface: string
+      evidence_type: string
+      review_trigger: string
+      status: 'active' | 'superseded' | 'withdrawn'
+      declared_at: string
+    }[]
+  }
 
   ai_act_mapping: {
     article: string
@@ -65,7 +78,9 @@ export type EvidencePack = {
 /* Export Evidence Pack                                                        */
 /* -------------------------------------------------------------------------- */
 
-export async function exportEvidencePack(organisationId: string): Promise<EvidencePack> {
+export async function exportEvidencePack(
+  organisationId: string,
+): Promise<EvidencePack> {
   const supabase = await supabaseServerRead()
 
   /* ------------------------------------------------------------------------ */
@@ -119,13 +134,16 @@ export async function exportEvidencePack(organisationId: string): Promise<Eviden
         version,
         jurisdiction
       )
-    `
+    `,
     )
     .eq('organisation_id', organisationId)
     .order('accepted_at', { ascending: true })
 
   if (acceptanceError) {
-    console.error('[exportEvidencePack] acceptance query error:', acceptanceError)
+    console.error(
+      '[exportEvidencePack] acceptance query error:',
+      acceptanceError,
+    )
     throw new Error(acceptanceError.message)
   }
 
@@ -145,13 +163,39 @@ export async function exportEvidencePack(organisationId: string): Promise<Eviden
       updated_at,
       created_at,
       is_operational
-    `
+    `,
     )
     .eq('organisation_id', organisationId)
     .order('created_at', { ascending: true })
 
   if (aiSystemsError) {
     console.error('[exportEvidencePack] ai_systems query error:', aiSystemsError)
+  }
+
+  /* ------------------------------------------------------------------------ */
+  /* Responsibility map (v1.1)                                                 */
+  /* ------------------------------------------------------------------------ */
+
+  const { data: responsibilities, error: respError } = await supabase
+    .from('organisation_responsibilities')
+    .select(
+      `
+      role_label,
+      decision_surface,
+      evidence_type,
+      review_trigger,
+      status,
+      declared_at
+    `,
+    )
+    .eq('organisation_id', organisationId)
+    .order('declared_at', { ascending: true })
+
+  if (respError) {
+    console.error(
+      '[exportEvidencePack] organisation_responsibilities query error:',
+      respError,
+    )
   }
 
   const generatedAt = new Date().toISOString()
@@ -161,7 +205,7 @@ export async function exportEvidencePack(organisationId: string): Promise<Eviden
   /* ------------------------------------------------------------------------ */
 
   const packCore: Omit<EvidencePack, 'integrity'> = {
-    evidence_pack_version: '1.0',
+    evidence_pack_version: '1.1',
 
     organisation: {
       id: organisation.id,
@@ -203,14 +247,29 @@ export async function exportEvidencePack(organisationId: string): Promise<Eviden
       system_owner: s.system_owner ?? null,
       data_categories: Array.isArray(s.data_categories) ? s.data_categories : [],
       lifecycle_status: s.lifecycle_status,
-      last_updated: s.updated_at ? new Date(s.updated_at).toISOString() : generatedAt,
+      is_operational: Boolean((s as any).is_operational),
+      last_updated: s.updated_at
+        ? new Date(s.updated_at).toISOString()
+        : generatedAt,
     })),
+
+    responsibility_map: {
+      declared_count: (responsibilities ?? []).length,
+      records: (responsibilities ?? []).map((r) => ({
+        role: r.role_label,
+        decision_surface: r.decision_surface,
+        evidence_type: r.evidence_type,
+        review_trigger: r.review_trigger,
+        status: r.status as 'active' | 'superseded' | 'withdrawn',
+        declared_at: new Date(r.declared_at).toISOString(),
+      })),
+    },
 
     ai_act_mapping: [
       {
         article: 'Article 4',
         expectation: 'AI governance awareness',
-        evidence_refs: ['ai_systems'],
+        evidence_refs: ['ai_systems', 'responsibility_map'],
       },
       {
         article: 'Article 10',
@@ -225,7 +284,10 @@ export async function exportEvidencePack(organisationId: string): Promise<Eviden
       {
         article: 'Article 17',
         expectation: 'Governance controls and auditability',
-        evidence_refs: ['governance_snapshot.organisation_events'],
+        evidence_refs: [
+          'governance_snapshot.organisation_events',
+          'responsibility_map',
+        ],
       },
     ],
   }
@@ -244,4 +306,5 @@ export async function exportEvidencePack(organisationId: string): Promise<Eviden
     },
   }
 }
+
 

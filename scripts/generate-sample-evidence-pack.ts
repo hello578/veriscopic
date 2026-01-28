@@ -1,3 +1,5 @@
+// scripts/generate-sample-evidence-pack.ts
+
 import fs from 'fs'
 import path from 'path'
 
@@ -9,7 +11,7 @@ async function main() {
   const generatedAt = new Date().toISOString()
 
   const packCore: Omit<EvidencePack, 'integrity'> = {
-    evidence_pack_version: '1.0',
+    evidence_pack_version: '1.1',
 
     organisation: {
       id: 'org_sample_redacted',
@@ -70,12 +72,13 @@ async function main() {
 
     ai_systems: [
       {
-        name: 'Sample AI System',
-        purpose: 'Decision support',
-        system_owner: 'Redacted',
-        data_categories: ['usage telemetry', 'account data'],
+        name: 'Customer Support Assistant',
+        purpose: 'Responding to customer enquiries',
+        system_owner: 'Operations Lead',
+        data_categories: ['customer messages', 'support metadata'],
         lifecycle_status: 'production',
-        last_updated: generatedAt,
+        is_operational: true,
+        last_updated: '2025-01-01T10:00:00Z',
       },
     ],
 
@@ -96,6 +99,20 @@ async function main() {
         evidence_refs: ['governance_snapshot.organisation_events'],
       },
     ],
+
+    responsibility_map: {
+      declared_count: 1,
+      records: [
+        {
+          role: 'Board',
+          decision_surface: 'Approval of AI system deployment',
+          evidence_type: 'AI systems registry entry',
+          review_trigger: 'On system lifecycle change',
+          status: 'active',
+          declared_at: '2025-01-01T10:00:00Z',
+        },
+      ],
+    },
   }
 
   const { checksum } = sha256HexFromJson(packCore)
@@ -109,7 +126,6 @@ async function main() {
   }
 
   const pdf = await renderEvidencePackPdfCore(pack, { mode: 'sample' })
-
 
   const outPath = path.join(
     process.cwd(),
