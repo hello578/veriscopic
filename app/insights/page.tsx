@@ -1,4 +1,5 @@
 // app/insights/page.tsx
+// app/insights/page.tsx
 
 import { PublicPage } from "@/components/public-page"
 
@@ -12,21 +13,21 @@ export default function InsightsPage() {
             Insights
           </h1>
           <p className="mt-3 text-slate-600">
-            Briefings on AI governance, procurement expectations, risk, and
-            evidence-based oversight — written for boards, trustees, reviewers,
-            insurers, and regulators.
+            Board-level briefings on AI governance, procurement expectations,
+            risk, and evidence-based oversight — written for boards, trustees,
+            insurers, reviewers, and regulators.
           </p>
         </div>
       </section>
 
       {/* Content */}
       <section className="mx-auto max-w-3xl px-6 py-20">
-        <div className="space-y-14">
+        <div className="space-y-16">
 
           {/* Foundations */}
           <Section
             title="Board and regulatory foundations"
-            description="Core briefings on why governance is shifting from intent to defensible, system-level evidence."
+            description="Why governance expectations are shifting from intent and policy to defensible, system-level evidence."
           >
             <ArticleLink
               href="/insights/governance-evidence/accountability-as-evidence"
@@ -47,35 +48,23 @@ export default function InsightsPage() {
             />
           </Section>
 
-          {/* Housing */}
+          {/* Sector-specific scrutiny */}
           <Section
-            title="Housing associations"
-            description="Governance evidence and oversight expectations in regulated housing environments."
+            title="Sector-specific governance scrutiny"
+            description="How evidence expectations differ across regulated and high-accountability environments."
           >
             <ArticleLink
               href="/insights/housing/evidencing-digital-governance"
               title="How housing associations are being asked to evidence digital governance in practice"
               summary="Why boards are increasingly expected to demonstrate system-level oversight — not just policy intent."
             />
-          </Section>
 
-          {/* Health */}
-          <Section
-            title="Health-adjacent public bodies"
-            description="How health-sector organisations are expected to evidence AI and digital governance under scrutiny."
-          >
             <ArticleLink
               href="/insights/health/evidencing-ai-governance"
               title="How health bodies are expected to evidence AI and digital governance under external review"
               summary="Why clinical assurance and policies alone no longer satisfy regulators, auditors, and procurement teams."
             />
-          </Section>
 
-          {/* Charity */}
-          <Section
-            title="Charities and trustees"
-            description="Trustee accountability, public confidence, and evidence of digital decision-making."
-          >
             <ArticleLink
               href="/insights/charity/trustee-governance-evidence"
               title="What trustees are being asked to evidence about AI and digital decision-making"
@@ -83,22 +72,34 @@ export default function InsightsPage() {
             />
           </Section>
 
-          {/* Risk / insurance */}
+          {/* Risk, insurance, and liability */}
           <Section
-            title="Risk, insurance, and external scrutiny"
-            description="How AI governance evidence increasingly shapes underwriting, audit, and procurement outcomes."
+            title="Risk, insurance, and liability"
+            description="How governance evidence increasingly shapes underwriting, claims, lending, and external scrutiny."
           >
             <ArticleLink
-              href="/insights/risk-insurance/ai-risk-underwriting"
-              title="What insurers will ask for when underwriting AI risk"
-              summary="How governance evidence affects coverage, exclusions, and review outcomes."
+              href="/insights/risk-insurance/evidencing-governance-for-underwriting"
+              title="What insurers look for when underwriting governance risk in AI and digital systems"
+              summary="How governance evidence influences coverage decisions, exclusions, and post-loss review."
+            />
+
+            <ArticleLink
+              href="/insights/property/conveyancing-governance-evidence"
+              title="Why conveyancing firms are being asked to evidence governance, not just follow process"
+              summary="How reliance on email and PDFs creates risk in property transactions — and why evidence now matters."
+            />
+
+            <ArticleLink
+              href="/insights/lending/evidencing-governance-in-credit-decisions"
+              title="How lenders are expected to evidence governance in AI-assisted credit decisions"
+              summary="Why credit, risk, and investment decisions are increasingly judged on defensible oversight."
             />
           </Section>
 
           {/* Comparative analysis */}
           <Section
             title="Comparative analysis"
-            description="Understanding the difference between evidence-based governance and compliance automation."
+            description="Understanding the limits of compliance automation and the role of evidence under scrutiny."
           >
             <ArticleLink
               href="/compare/evidence-vs-compliance-automation"
